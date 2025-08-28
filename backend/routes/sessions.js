@@ -39,8 +39,7 @@ router.post("/", async (req, res) => {
     }
 
     // detect LAN IP
-    const localIP = getLocalIP();
-    const frontendUrl = process.env.FRONTEND_URL || `http://${localIP}:5173`;
+    const frontendUrl = process.env.FRONTEND_URL;
 
     // deactivate old sessions
     await Session.updateMany({}, { is_active: false });

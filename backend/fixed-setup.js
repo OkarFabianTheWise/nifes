@@ -119,7 +119,8 @@ function createSampleSession() {
   console.log('📅 Creating sample session...');
   
   const sessionId = 'session-' + Date.now();
-  const qrData = `http://localhost:5000/scan/${sessionId}`;
+  const qrData = `https://fellowship-attendance.vercel.app/attend/${newSession._id}`;
+;
   const today = new Date().toISOString().split('T')[0];
   
   db.run(
