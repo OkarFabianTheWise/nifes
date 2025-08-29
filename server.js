@@ -7,6 +7,8 @@ import memberRoutes from "./routes/members.js";
 import sessionRoutes from "./routes/sessions.js";
 import attendanceRoutes from "./routes/attendance.js";
 import attendeeRoutes from "./routes/attendeeRoutes.js";
+import scanRoutes from "./routes/scan.js";
+
 
 dotenv.config();
 const app = express();
@@ -27,6 +29,7 @@ app.use("/api/members", memberRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/attendees", attendeeRoutes);
+app.use("/scan", scanRoutes);
 
 // PORT setup
 const PORT = process.env.PORT || 5000;
