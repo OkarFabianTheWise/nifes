@@ -1,10 +1,28 @@
+// models/Attendance.js
 import mongoose from "mongoose";
 
-const attendanceSchema = new mongoose.Schema({
-  sessionId: { type: mongoose.Schema.Types.ObjectId, ref: "Session", required: true },
-  memberId: { type: mongoose.Schema.Types.ObjectId, ref: "Member", required: true },
-  scan_time: { type: Date, default: Date.now },
-  is_first_time: { type: Boolean, default: false }
-}, { timestamps: true });
+const AttendanceSchema = new mongoose.Schema({
+  sessionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Session", // assuming you have a Session model
+    required: true,
+  },
+  memberId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Member",
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ["present", "absent"],
+    default: "absent",
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
-export default mongoose.model("AttendanceRecord", attendanceSchema);
+const Attendance = mongoose.model("Attendance", AttendanceSchema);
+
+export default Attendance;
