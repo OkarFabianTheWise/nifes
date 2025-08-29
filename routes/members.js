@@ -1,6 +1,6 @@
 import express from "express";
 import Member from "../models/Member.js";
-import Attendance from "../models/Attendance.js";
+import Attendance from "../models/AttendanceRecord.js";
 
 const router = express.Router();
 
