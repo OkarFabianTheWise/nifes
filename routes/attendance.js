@@ -6,7 +6,7 @@ import Session from "../models/Session.js"; // Assuming you have a Session model
 const router = express.Router();
 
 // ✅ Mark attendance (handles new + returning members)
-router.post("/scan", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const { sessionId, email, name, phone } = req.body;
 
