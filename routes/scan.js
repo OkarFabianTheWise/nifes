@@ -5,6 +5,7 @@ import AttendanceRecord from "../models/AttendanceRecord.js";
 const router = express.Router();
 
 // POST /scan → handle scan & attendance
+// scan.js
 router.post("/", async (req, res) => {
   try {
     const { name, phone, sessionId } = req.body;
@@ -13,20 +14,21 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Phone number is required" });
     }
 
-    // 1. Check if member already exists by phone
+    // 1. Find member
     let member = await Member.findOne({ phone });
 
-    // 2. If not, create new member
+    let isNew = false;
     if (!member) {
+      isNew = true;
       member = new Member({
-        name: name || "New Member", // fallback if name wasn’t sent
+        name: name || "New Member",
         phone,
-        memberCode: `M${Date.now()}` // system-generated unique code
+        memberCode: `M${Date.now()}`
       });
       await member.save();
     }
 
-    // 3. Check if attendance already recorded for this session
+    // 2. Check if attendance already marked
     const alreadyMarked = await AttendanceRecord.findOne({
       memberId: member._id,
       sessionId
@@ -39,19 +41,21 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // 4. Create attendance record
+    // 3. Create attendance record automatically (whether new or old member)
     const attendance = new AttendanceRecord({
       memberId: member._id,
-      sessionId
+      sessionId,
+      status: "present"   // 👈 explicitly set status
     });
     await attendance.save();
 
     res.json({
-      message: member ? "Attendance recorded" : "New member registered and attendance recorded",
+      message: isNew
+        ? "New member registered and marked present"
+        : "Attendance recorded",
       member,
       attendance
     });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
