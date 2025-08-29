@@ -24,6 +24,47 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Add new member manually
+router.post("/", async (req, res) => {
+  try {
+    const { name, phone, sessionId } = req.body;
+
+    if (!phone || !name) {
+      return res.status(400).json({ error: "Name and phone are required" });
+    }
+
+    // Create member
+    const member = new Member({
+      name,
+      phone,
+      memberCode: `M${Date.now()}`
+    });
+    await member.save();
+
+    // Mark present immediately if sessionId is passed
+    let attendance = null;
+    if (sessionId) {
+      attendance = new AttendanceRecord({
+        memberId: member._id,
+        sessionId,
+        status: "present"
+      });
+      await attendance.save();
+    }
+
+    res.json({
+      message: sessionId
+        ? "Member added and marked present"
+        : "Member added successfully",
+      member,
+      attendance
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // Delete member by ID
 router.delete("/:id", async (req, res) => {
   try {
