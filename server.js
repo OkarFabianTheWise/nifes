@@ -29,7 +29,7 @@ app.use("/api/members", memberRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/attendees", attendeeRoutes);
-app.use("/scan", scanRoutes);
+app.use("/api/scan", scanRoutes);
 
 // PORT setup
 const PORT = process.env.PORT || 5000;
