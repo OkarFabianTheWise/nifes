@@ -1,83 +1,60 @@
 import express from "express";
 import Member from "../models/Member.js";
+import Attendance from "../models/Attendance.js";
 
 const router = express.Router();
 
-// GET all members
-router.get("/", async (req, res) => {
-  try {
-    const members = await Member.find();
-    res.json(members);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST add new member
+// 📌 Register a new member and mark as PRESENT in today's session
 router.post("/", async (req, res) => {
   try {
-    const newMember = new Member(req.body);
-    await newMember.save();
-    res.status(201).json(newMember);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+    const { sessionId, name, email, phone } = req.body;
 
-// Add new member manually
-router.post("/", async (req, res) => {
-  try {
-    const { name, phone, sessionId } = req.body;
-
-    if (!phone || !name) {
-      return res.status(400).json({ error: "Name and phone are required" });
+    if (!sessionId || !name) {
+      return res.status(400).json({ error: "Session ID and name are required" });
     }
 
-    // Create member
-    const member = new Member({
+    // 1. Create the new member
+    const newMember = await Member.create({
       name,
+      email,
       phone,
-      memberCode: `M${Date.now()}`
     });
-    await member.save();
 
-    // Mark present immediately if sessionId is passed
-    let attendance = null;
-    if (sessionId) {
-      attendance = new AttendanceRecord({
-        memberId: member._id,
-        sessionId,
-        status: "present"
-      });
-      await attendance.save();
-    }
-
-    res.json({
-      message: sessionId
-        ? "Member added and marked present"
-        : "Member added successfully",
-      member,
-      attendance
+    // 2. Immediately mark as PRESENT in the attendance table
+    const attendance = await Attendance.create({
+      sessionId,
+      memberId: newMember._id,
+      status: "present",
     });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+
+    res.status(201).json({
+      message: "Member registered and marked present",
+      member: newMember,
+      attendance,
+    });
+  } catch (error) {
+    console.error("Error registering member:", error);
+    res.status(500).json({ error: "Error registering member" });
   }
 });
 
-
-// Delete member by ID
+// 📌 Delete member
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const member = await Member.findByIdAndDelete(id);
+    const deleted = await Member.findByIdAndDelete(id);
 
-    if (!member) {
+    if (!deleted) {
       return res.status(404).json({ error: "Member not found" });
     }
 
+    // Optional: also remove their attendance records
+    await Attendance.deleteMany({ memberId: id });
+
     res.json({ message: "Member deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error("Error deleting member:", error);
+    res.status(500).json({ error: "Error deleting member" });
   }
 });
 
