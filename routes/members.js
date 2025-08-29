@@ -24,11 +24,17 @@ router.post("/", async (req, res) => {
   }
 });
 
-// DELETE member
+// Delete member by ID
 router.delete("/:id", async (req, res) => {
   try {
-    await Member.findByIdAndDelete(req.params.id);
-    res.json({ message: "Member deleted" });
+    const { id } = req.params;
+    const member = await Member.findByIdAndDelete(id);
+
+    if (!member) {
+      return res.status(404).json({ error: "Member not found" });
+    }
+
+    res.json({ message: "Member deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
