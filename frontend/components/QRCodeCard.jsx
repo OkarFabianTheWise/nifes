@@ -1,4 +1,4 @@
-import React from 'react'
+// components/QRCodeCard.jsx
 import QRCode from 'react-qr-code'
 
 export default function QRCodeCard({ session, fallbackApiUrl }) {

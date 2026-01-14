@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react'
+// components/MemberModal.jsx
+import { useEffect, useState } from 'react'
 import axios from 'axios'
 
 export default function MemberModal({ open, onClose, apiUrl, sessionId, onMarked }) {

@@ -1,3 +1,4 @@
+// index.jsx
 import React, { useEffect, useState } from 'react'
 import SessionManager from '../components/SessionManager'
 import QRCodeCard from '../components/QRCodeCard'
@@ -67,7 +68,7 @@ export default function Home() {
       <div className="grid md:grid-cols-3 gap-4">
         <div className="md:col-span-1">
           <div className="card mb-4">
-            <h3 className="font-semibold mb-3">Quick Stats</h3>
+            <h3 className="font-semibold mb-3">Quick Stats.</h3>
             <div className="grid grid-cols-1 gap-2">
               <div className="border p-3 rounded">Total Members: <strong>{stats.totalMembers}</strong></div>
               <div className="border p-3 rounded">Present Today: <strong>{stats.presentToday}</strong></div>
