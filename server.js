@@ -14,9 +14,17 @@ dotenv.config();
 const app = express();
 connectDB();
 
-// ✅ CORS: allow requests only from your frontend
+// ✅ CORS: allow requests from configured frontend and localhost during development
+const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:3000', 'https://fellowship-attendance.vercel.app'].filter(Boolean);
 app.use(cors({
-  origin: "https://fellowship-attendance.vercel.app" // frontend URL
+  origin: function (origin, callback) {
+    // allow requests with no origin (like curl, Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS policy: Origin not allowed'));
+  }
 }));
 
 app.use(express.json());

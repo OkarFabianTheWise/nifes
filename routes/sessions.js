@@ -14,6 +14,16 @@ router.get("/active", async (req, res) => {
   }
 });
 
+// GET all sessions
+router.get("/", async (req, res) => {
+  try {
+    const sessions = await Session.find().sort({ createdAt: -1 });
+    res.json(sessions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST create new session
 router.post("/", async (req, res) => {
   try {
@@ -30,7 +40,7 @@ router.post("/", async (req, res) => {
     await newSession.save();
 
     // Determine frontend URL from environment or fallback
-    const frontendUrl = process.env.FRONTEND_URL || "https://your-frontend.vercel.app";
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 
     // Generate QR code pointing to the frontend attendance page
     const qrData = `${frontendUrl}/attend/${newSession._id}`;
@@ -51,6 +61,19 @@ router.get("/:id/stats", async (req, res) => {
   try {
     // TODO: compute attendance count, first-timers, etc.
     res.json({ total: 0, firstTimers: 0 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET session by id
+router.get("/:id", async (req, res) => {
+  try {
+    const session = await Session.findById(req.params.id);
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+    res.json(session);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

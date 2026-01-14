@@ -4,6 +4,17 @@ import Attendance from "../models/AttendanceRecord.js";
 
 const router = express.Router();
 
+// 📌 Get all members
+router.get("/", async (req, res) => {
+  try {
+    const members = await Member.find().sort({ createdAt: -1 });
+    res.json({ members });
+  } catch (error) {
+    console.error("Error fetching members:", error);
+    res.status(500).json({ error: "Error fetching members" });
+  }
+});
+
 // 📌 Register a new member and mark as PRESENT in today's session
 router.post("/", async (req, res) => {
   try {

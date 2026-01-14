@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import Member from "../models/Member.js";
 import AttendanceRecord from "../models/AttendanceRecord.js";
 
@@ -8,10 +9,18 @@ const router = express.Router();
 // scan.js
 router.post("/", async (req, res) => {
   try {
-    const { name, phone, sessionId } = req.body;
+    const { name, phone, email, address, sessionId } = req.body;
 
     if (!phone) {
       return res.status(400).json({ error: "Phone number is required" });
+    }
+
+    if (!sessionId) {
+      return res.status(400).json({ error: "Session ID is required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(sessionId)) {
+      return res.status(400).json({ error: "Invalid Session ID" });
     }
 
     // 1. Find member
@@ -23,6 +32,8 @@ router.post("/", async (req, res) => {
       member = new Member({
         name: name || "New Member",
         phone,
+        email,
+        address,
         memberCode: `M${Date.now()}`
       });
       await member.save();
@@ -57,6 +68,7 @@ router.post("/", async (req, res) => {
       attendance
     });
   } catch (err) {
+    console.error('Error in /api/scan:', err);
     res.status(500).json({ error: err.message });
   }
 });
