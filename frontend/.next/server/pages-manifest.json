@@ -1,1 +1,8 @@
-{"/_app":"pages/_app.js","/attend/[sessionId]":"pages/attend/[sessionId].html","/_error":"pages/_error.js","/":"pages/index.html","/data":"pages/data.html","/_document":"pages/_document.js","/404":"pages/404.html"}
+{
+  "/_app": "pages/_app.js",
+  "/_error": "pages/_error.js",
+  "/_document": "pages/_document.js",
+  "/": "pages/index.js",
+  "/data": "pages/data.js",
+  "/attend/[sessionId]": "pages/attend/[sessionId].js"
+}

@@ -3,8 +3,10 @@ import React, { useEffect, useState } from 'react'
 import SessionManager from '../components/SessionManager'
 import QRCodeCard from '../components/QRCodeCard'
 import MemberModal from '../components/MemberModal'
+import MembersRollCall from '../components/MembersRollCall'
 import axios from 'axios'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function Home() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
@@ -60,37 +62,57 @@ export default function Home() {
   return (
     <div className="container">
       <header className="card mb-6 text-center">
+        <div className="flex justify-center mb-4">
+          <div className="w-12 h-12 relative">
+            <Image src="/nifes-logo.png" alt="NIFES Logo" fill className="object-contain" />
+          </div>
+        </div>
         <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Fellowship Attendance Dashboard</h1>
         <p className="text-gray-600">Manage attendance with QR and manual registration</p>
-        <Link href="/data" className="btn mt-2">View Data & Stats</Link>
       </header>
 
-      <div className="grid md:grid-cols-3 gap-4">
-        <div className="md:col-span-1">
-          <div className="card mb-4">
-            <h3 className="font-semibold mb-3">Quick Stats.</h3>
-            <div className="grid grid-cols-1 gap-2">
-              <div className="border p-3 rounded">Total Members: <strong>{stats.totalMembers}</strong></div>
-              <div className="border p-3 rounded">Present Today: <strong>{stats.presentToday}</strong></div>
-              <div className="border p-3 rounded">First Timers: <strong>{stats.firstTimers}</strong></div>
-              <div className="border p-3 rounded">Absent: <strong>{stats.absent}</strong></div>
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Left Column: Stats */}
+        <div>
+          <div className="card">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="font-semibold text-lg">Quick Stats</h3>
+              <Link href="/data" className="btn text-xs py-1 px-2">View Data</Link>
             </div>
+            <div className="grid grid-cols-1 gap-2">
+              <div className="border p-3 rounded bg-gradient-to-r from-blue-50 to-transparent">Total Members: <strong>{stats.totalMembers}</strong></div>
+              <div className="border p-3 rounded bg-gradient-to-r from-green-50 to-transparent">Present Today: <strong>{stats.presentToday}</strong></div>
+              <div className="border p-3 rounded bg-gradient-to-r from-purple-50 to-transparent">First Timers: <strong>{stats.firstTimers}</strong></div>
+              <div className="border p-3 rounded bg-gradient-to-r from-orange-50 to-transparent">Absent: <strong>{stats.absent}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: QR Code */}
+        <div>
+          <QRCodeCard session={session} fallbackApiUrl={apiUrl} />
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6 mt-6">
+        {/* Left Column: Members Roll Call */}
+        <div>
+          <MembersRollCall apiUrl={apiUrl} currentSession={session} stats={stats} refreshStats={refreshStats} />
+        </div>
+
+        {/* Right Column: Attendance Actions & Session Manager stacked */}
+        <div className="space-y-6">
+          <div className="card">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-semibold text-lg">Attendance Actions</h3>
+              <button className="btn" onClick={() => setShowModal(true)}>
+                Manual Mark / Register
+              </button>
+            </div>
+            <p className="text-sm text-gray-600">Use the QR code above to scan and mark attendance, or manually register new members.</p>
           </div>
 
           <SessionManager apiUrl={apiUrl} onSessionChange={handleSessionChange} />
-        </div>
-
-        <div className="md:col-span-2">
-          <QRCodeCard session={session} fallbackApiUrl={apiUrl} />
-          <div className="mt-4 card">
-            <div className="flex justify-between items-center">
-              <h3 className="font-semibold">Attendance Actions</h3>
-              <div className="flex gap-2">
-                <button className="btn" onClick={() => setShowModal(true)}>Manual Mark / Register</button>
-              </div>
-            </div>
-            <p className="mt-3 text-sm text-gray-600">Use the QR above to scan and mark attendance (scans should call the backend scan endpoint).</p>
-          </div>
         </div>
       </div>
 

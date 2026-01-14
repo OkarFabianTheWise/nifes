@@ -1,7 +1,8 @@
 // attend/[sessionId].jsx
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import axios from 'axios'
+import Image from 'next/image'
 
 export default function AttendPage() {
   const router = useRouter()
@@ -103,21 +104,49 @@ export default function AttendPage() {
 
   if (!mode) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center p-6">
-        <div className="bg-white rounded-xl p-8 w-full max-w-md text-center">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center p-6 relative overflow-hidden">
+        {/* Logo Background Pattern */}
+        <div className="absolute inset-0 opacity-5 pointer-events-none">
+          <div className="absolute top-10 left-10 w-20 h-20">
+            <Image src="/nifes-logo.png" alt="Logo" fill className="object-contain" />
+          </div>
+          <div className="absolute top-1/3 right-20 w-24 h-24">
+            <Image src="/nifes-logo.png" alt="Logo" fill className="object-contain" />
+          </div>
+          <div className="absolute bottom-20 left-1/4 w-28 h-28">
+            <Image src="/nifes-logo.png" alt="Logo" fill className="object-contain" />
+          </div>
+          <div className="absolute bottom-10 right-10 w-20 h-20">
+            <Image src="/nifes-logo.png" alt="Logo" fill className="object-contain" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-8 w-full max-w-md text-center relative z-10 shadow-2xl">
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 relative">
+              <Image src="/nifes-logo.png" alt="NIFES Logo" fill className="object-contain" />
+            </div>
+          </div>
           <h1 className="text-2xl font-bold mb-6">Mark Attendance</h1>
           {session && (
-            <div className="mb-4 text-left bg-gray-50 p-3 rounded">
-              <p className="font-semibold">Programme: {session.name}</p>
-              <p className="text-sm text-gray-600">Created: {new Date(session.createdAt).toLocaleString()}</p>
+            <div className="mb-4 text-left bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg border border-indigo-100">
+              <div className="flex items-start gap-2">
+                <div className="w-5 h-5 mt-0.5 flex-shrink-0 relative">
+                  <Image src="/nifes-logo.png" alt="Logo" fill className="object-contain" />
+                </div>
+                <div>
+                  <p className="font-semibold text-indigo-900">Programme: {session.name}</p>
+                  <p className="text-xs text-indigo-600 mt-1">Created: {new Date(session.createdAt).toLocaleString()}</p>
+                </div>
+              </div>
             </div>
           )}
-          <p className="mb-4">Are you an existing member or new?</p>
-          <div className="space-y-4">
-            <button onClick={() => setMode('existing')} className="w-full bg-blue-600 text-white p-3 rounded font-semibold">
+          <p className="mb-6 text-gray-700">Are you an existing member or new?</p>
+          <div className="space-y-3">
+            <button onClick={() => setMode('existing')} className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 rounded-lg font-semibold hover:shadow-lg transition">
               Existing Member
             </button>
-            <button onClick={() => setMode('new')} className="w-full bg-green-600 text-white p-3 rounded font-semibold">
+            <button onClick={() => setMode('new')} className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white p-3 rounded-lg font-semibold hover:shadow-lg transition">
               New Member
             </button>
           </div>
@@ -127,33 +156,64 @@ export default function AttendPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center p-6">
-      <div className="bg-white rounded-xl p-8 w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Logo Background Pattern */}
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
+        <div className="absolute top-10 left-10 w-20 h-20">
+          <Image src="/nifes-logo.png" alt="Logo" fill className="object-contain" />
+        </div>
+        <div className="absolute top-1/3 right-20 w-24 h-24">
+          <Image src="/nifes-logo.png" alt="Logo" fill className="object-contain" />
+        </div>
+        <div className="absolute bottom-20 left-1/4 w-28 h-28">
+          <Image src="/nifes-logo.png" alt="Logo" fill className="object-contain" />
+        </div>
+        <div className="absolute bottom-10 right-10 w-20 h-20">
+          <Image src="/nifes-logo.png" alt="Logo" fill className="object-contain" />
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl p-8 w-full max-w-md relative z-10 shadow-2xl">
+        <div className="flex justify-center mb-4">
+          <div className="w-12 h-12 relative">
+            <Image src="/nifes-logo.png" alt="NIFES Logo" fill className="object-contain" />
+          </div>
+        </div>
         <h1 className="text-2xl font-bold text-center mb-6">Mark Attendance</h1>
         {session && (
-          <div className="mb-4 text-left bg-gray-50 p-3 rounded">
-            <p className="font-semibold">Active session: {session.name}</p>
-            <p className="text-sm text-gray-600">Created: {new Date(session.createdAt).toLocaleString()}</p>
+          <div className="mb-4 text-left bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg border border-indigo-100">
+            <div className="flex items-start gap-2">
+              <div className="w-5 h-5 mt-0.5 flex-shrink-0 relative">
+                <Image src="/nifes-logo.png" alt="Logo" fill className="object-contain" />
+              </div>
+              <div>
+                <p className="font-semibold text-indigo-900">Active session: {session.name}</p>
+                <p className="text-xs text-indigo-600 mt-1">Created: {new Date(session.createdAt).toLocaleString()}</p>
+              </div>
+            </div>
           </div>
         )}
         {mode === 'existing' && (
           <div className="space-y-4">
             <div className="relative">
+              <div className="absolute left-3 top-3 w-4 h-4 relative">
+                <Image src="/nifes-logo.png" alt="Search" fill className="object-contain opacity-50" />
+              </div>
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search by name or email"
-                className="w-full p-3 border rounded"
+                className="w-full p-3 pl-10 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               {filteredMembers.length > 0 && (
-                <ul className="absolute z-10 w-full bg-white border rounded-b shadow-lg max-h-60 overflow-y-auto">
+                <ul className="absolute z-10 w-full bg-white border border-indigo-200 rounded-b-lg shadow-lg max-h-60 overflow-y-auto">
                   {filteredMembers.map(m => (
                     <li
                       key={m._id}
-                      className="p-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
+                      className="p-3 hover:bg-indigo-50 cursor-pointer border-b last:border-b-0 transition"
                       onClick={() => setSelectedMember(m)}
                     >
-                      <div className="font-medium">{m.name}</div>
+                      <div className="font-medium text-gray-800">{m.name}</div>
                       <div className="text-sm text-gray-500">{m.email}</div>
                     </li>
                   ))}
@@ -161,19 +221,26 @@ export default function AttendPage() {
               )}
             </div>
             {selectedMember && (
-              <div className="p-3 bg-blue-50 rounded">
-                <p><strong>{selectedMember.name}</strong></p>
-                <p>{selectedMember.email}</p>
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                <div className="flex items-start gap-2">
+                  <div className="w-5 h-5 mt-0.5 flex-shrink-0 relative">
+                    <Image src="/nifes-logo.png" alt="Member" fill className="object-contain" />
+                  </div>
+                  <div className="flex-1">
+                    <p><strong className="text-indigo-900">{selectedMember.name}</strong></p>
+                    <p className="text-sm text-gray-600">{selectedMember.email}</p>
+                  </div>
+                </div>
                 <button
                   onClick={() => handleMarkPresent(selectedMember)}
                   disabled={loading}
-                  className="mt-2 bg-blue-600 text-white px-4 py-2 rounded"
+                  className="mt-3 w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition disabled:opacity-50"
                 >
                   {loading ? 'Marking...' : 'Mark Present'}
                 </button>
               </div>
             )}
-            <button onClick={() => setMode(null)} className="w-full bg-gray-300 text-gray-800 p-2 rounded text-sm">
+            <button onClick={() => setMode(null)} className="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 p-2 rounded-lg text-sm font-medium transition">
               Back
             </button>
           </div>
@@ -181,38 +248,58 @@ export default function AttendPage() {
 
         {mode === 'new' && (
           <form onSubmit={handleNew} className="space-y-4">
-            <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Full Name"
-              className="w-full p-3 border rounded"
-              required
-            />
-            <input
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="Email"
-              className="w-full p-3 border rounded"
-              type="email"
-              required
-            />
-            <input
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              placeholder="Phone Number"
-              className="w-full p-3 border rounded"
-              required
-            />
-            <input
-              value={address}
-              onChange={e => setAddress(e.target.value)}
-              placeholder="Hostel/Lodge Address"
-              className="w-full p-3 border rounded"
-            />
-            <button type="submit" disabled={loading} className="w-full bg-green-600 text-white p-3 rounded font-semibold">
+            <div className="relative">
+              <div className="absolute left-3 top-3 w-4 h-4 relative">
+                <Image src="/nifes-logo.png" alt="Name" fill className="object-contain opacity-50" />
+              </div>
+              <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="Full Name"
+                className="w-full p-3 pl-10 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                required
+              />
+            </div>
+            <div className="relative">
+              <div className="absolute left-3 top-3 w-4 h-4 relative">
+                <Image src="/nifes-logo.png" alt="Email" fill className="object-contain opacity-50" />
+              </div>
+              <input
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="Email"
+                className="w-full p-3 pl-10 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                type="email"
+                required
+              />
+            </div>
+            <div className="relative">
+              <div className="absolute left-3 top-3 w-4 h-4 relative">
+                <Image src="/nifes-logo.png" alt="Phone" fill className="object-contain opacity-50" />
+              </div>
+              <input
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="Phone Number"
+                className="w-full p-3 pl-10 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                required
+              />
+            </div>
+            <div className="relative">
+              <div className="absolute left-3 top-3 w-4 h-4 relative">
+                <Image src="/nifes-logo.png" alt="Address" fill className="object-contain opacity-50" />
+              </div>
+              <input
+                value={address}
+                onChange={e => setAddress(e.target.value)}
+                placeholder="Hostel/Lodge Address"
+                className="w-full p-3 pl-10 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white p-3 rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50">
               {loading ? 'Registering...' : 'Register & Mark Present'}
             </button>
-            <button type="button" onClick={() => setMode(null)} className="w-full bg-gray-300 text-gray-800 p-2 rounded text-sm">
+            <button type="button" onClick={() => setMode(null)} className="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 p-2 rounded-lg text-sm font-medium transition">
               Back
             </button>
           </form>
@@ -221,11 +308,16 @@ export default function AttendPage() {
       </div>
 
       {success && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg text-center">
-            <h2 className="text-xl font-bold mb-4">Success!</h2>
-            <p className="mb-4">{message}</p>
-            <button onClick={() => window.location.reload()} className="bg-blue-600 text-white px-4 py-2 rounded">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 relative">
+          <div className="bg-white p-8 rounded-xl text-center shadow-2xl w-full max-w-md">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 relative">
+                <Image src="/nifes-logo.png" alt="Success" fill className="object-contain" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold mb-4 text-green-600">Success!</h2>
+            <p className="mb-6 text-gray-700">{message}</p>
+            <button onClick={() => window.location.reload()} className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-lg font-semibold hover:shadow-lg transition">
               OK
             </button>
           </div>
