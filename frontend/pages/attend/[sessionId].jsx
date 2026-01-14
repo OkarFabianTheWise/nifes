@@ -19,7 +19,7 @@ export default function AttendPage() {
   const [success, setSuccess] = useState(false)
   const [session, setSession] = useState(null)
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || localStorage.getItem('nifes_api') || 'http://localhost:5000'
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
 
   useEffect(() => {
     if (sessionId) {
