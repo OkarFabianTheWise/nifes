@@ -2,7 +2,7 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
+  "/data": "pages/data.js",
   "/attend/[sessionId]": "pages/attend/[sessionId].js",
-  "/": "pages/index.js",
-  "/data": "pages/data.js"
+  "/": "pages/index.js"
 }

@@ -122,12 +122,19 @@ export default function Data() {
         <div className="card">
           <h3 className="font-semibold mb-3">Recent Sessions</h3>
           <div className="space-y-2">
-            {stats.recentSessions.map(session => (
-              <div key={session._id} className="flex justify-between items-center p-2 border rounded hover:bg-gray-50 transition-colors">
-                <span>{session.name}</span>
-                <span className="font-bold text-green-600">{session.attendanceCount}</span>
+            {stats.recentSessions.length > 0 ? (
+              stats.recentSessions.map(session => (
+                <div key={session._id} className="flex justify-between items-center p-2 border rounded hover:bg-gray-50 transition-colors">
+                  <span>{session.name}</span>
+                  <span className="font-bold text-green-600">{session.attendanceCount}</span>
+                </div>
+              ))
+            ) : (
+              <div className="flex justify-between items-center p-2 border rounded bg-gray-50">
+                <span>Tuesday Service</span>
+                <span className="font-bold text-gray-400">0</span>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
