@@ -23,6 +23,12 @@ const AttendanceSchema = new mongoose.Schema({
   },
 });
 
+// ✅ Add indexes for fast lookups under high concurrency
+AttendanceSchema.index({ sessionId: 1, memberId: 1 }, { unique: true }); // Prevent duplicates efficiently
+AttendanceSchema.index({ memberId: 1 });
+AttendanceSchema.index({ sessionId: 1 });
+AttendanceSchema.index({ timestamp: -1 });
+
 const Attendance = mongoose.model("Attendance", AttendanceSchema);
 
 export default Attendance;

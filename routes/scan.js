@@ -5,8 +5,7 @@ import AttendanceRecord from "../models/AttendanceRecord.js";
 
 const router = express.Router();
 
-// POST /scan → handle scan & attendance
-// scan.js
+// POST /scan → handle scan & attendance with optimized queries
 router.post("/", async (req, res) => {
   try {
     const { name, phone, email, address, sessionId } = req.body;
@@ -23,49 +22,46 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Invalid Session ID" });
     }
 
-    // 1. Find member
-    let member = await Member.findOne({ phone });
+    // 1. Find member (lean for read-only)
+    let member = await Member.findOne({ phone }).lean();
 
     let isNew = false;
     if (!member) {
       isNew = true;
-      member = new Member({
+      const newMember = new Member({
         name: name || "New Member",
         phone,
         email,
         address,
         memberCode: `M${Date.now()}`
       });
-      await member.save();
+      await newMember.save();
+      member = newMember.toObject(); // Convert to plain object
     }
 
-    // 2. Check if attendance already marked
-    const alreadyMarked = await AttendanceRecord.findOne({
-      memberId: member._id,
-      sessionId
-    });
-
-    if (alreadyMarked) {
-      return res.json({
-        message: "Attendance already recorded for this session",
-        member
-      });
+    // 2. Use upsert with indexes to avoid duplicate attendance efficiently
+    try {
+      await AttendanceRecord.updateOne(
+        { memberId: member._id, sessionId },
+        { $setOnInsert: { status: "present", timestamp: new Date() } },
+        { upsert: true }
+      );
+    } catch (err) {
+      // Handle duplicate key error gracefully
+      if (err.code === 11000) {
+        return res.json({
+          message: "Attendance already recorded for this session",
+          member
+        });
+      }
+      throw err;
     }
 
-    // 3. Create attendance record automatically (whether new or old member)
-    const attendance = new AttendanceRecord({
-      memberId: member._id,
-      sessionId,
-      status: "present"   // 👈 explicitly set status
-    });
-    await attendance.save();
-
-    res.json({
+    res.status(201).json({
       message: isNew
         ? "New member registered and marked present"
         : "Attendance recorded",
-      member,
-      attendance
+      member
     });
   } catch (err) {
     console.error('Error in /api/scan:', err);

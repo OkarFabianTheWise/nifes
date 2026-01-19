@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import axios from 'axios'
 import Image from 'next/image'
+import { Toast } from '../../components/Toast'
 
 export default function AttendPage() {
   const router = useRouter()
@@ -20,8 +21,17 @@ export default function AttendPage() {
   const [message, setMessage] = useState('')
   const [success, setSuccess] = useState(false)
   const [session, setSession] = useState(null)
+  const [toastMessage, setToastMessage] = useState('')
+  const [toastType, setToastType] = useState('success')
+  const [showToastNotif, setShowToastNotif] = useState(false)
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+
+  const showToast = (message, type = 'success') => {
+    setToastMessage(message)
+    setToastType(type)
+    setShowToastNotif(true)
+  }
 
   useEffect(() => {
     if (sessionId) {
@@ -68,11 +78,11 @@ export default function AttendPage() {
         address: member.address,
         sessionId
       })
-      setMessage(res.data.message || 'Attendance recorded!')
+      showToast(res.data.message || 'Attendance recorded!', 'success')
       setSuccess(true)
     } catch (err) {
       const msg = err?.response?.data?.error || err.message || 'Failed'
-      setMessage(msg)
+      showToast(msg, 'error')
     } finally {
       setLoading(false)
     }
@@ -80,7 +90,7 @@ export default function AttendPage() {
 
   async function handleNew(e) {
     e.preventDefault()
-    if (!name || !email || !phone) return alert('Name, email, and phone required')
+    if (!name || !email || !phone) return showToast('Name, email, and phone required', 'error')
     setLoading(true)
     try {
       const res = await axios.post(`${apiUrl}/api/scan`, {
@@ -94,7 +104,7 @@ export default function AttendPage() {
       setSuccess(true)
     } catch (err) {
       const msg = err?.response?.data?.error || err.message || 'Failed'
-      setMessage(msg)
+      showToast(msg, 'error')
     } finally {
       setLoading(false)
     }
@@ -307,6 +317,13 @@ export default function AttendPage() {
 
       </div>
 
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        isOpen={showToastNotif}
+        onClose={() => setShowToastNotif(false)}
+      />
+
       {success && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 relative">
           <div className="bg-white p-8 rounded-xl text-center shadow-2xl w-full max-w-md">
@@ -316,7 +333,6 @@ export default function AttendPage() {
               </div>
             </div>
             <h2 className="text-2xl font-bold mb-4 text-green-600">Success!</h2>
-            <p className="mb-6 text-gray-700">{message}</p>
             <button onClick={() => window.location.reload()} className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-lg font-semibold hover:shadow-lg transition">
               OK
             </button>

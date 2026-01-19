@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 
-export default function MemberModal({ open, onClose, apiUrl, sessionId, onMarked }) {
+export default function MemberModal({ open, onClose, apiUrl, sessionId, onMarked, showToast }) {
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -43,49 +43,50 @@ export default function MemberModal({ open, onClose, apiUrl, sessionId, onMarked
   }
 
   async function markPresent(memberId) {
-    if (!apiUrl || !sessionId) return alert('No session')
+    if (!apiUrl || !sessionId) return showToast?.('No session selected', 'error')
     setLoading(true)
     try {
       await axios.post(`${apiUrl}/api/attendance`, { sessionId, email: members.find(m => m._id === memberId)?.email })
+      showToast?.('Attendance marked', 'success')
       onMarked && onMarked()
       onClose()
     } catch (err) {
       const msg = err?.response?.data?.error || err?.response?.data?.message || err.message || 'Failed'
-      alert(msg)
+      showToast?.(msg, 'error')
     } finally {
       setLoading(false)
     }
   }
 
   async function markByEmail() {
-    if (!apiUrl || !sessionId) return alert('Missing API or session')
-    if (!email) return alert('Email is required to mark by email')
+    if (!apiUrl || !sessionId) return showToast?.('Missing API or session', 'error')
+    if (!email) return showToast?.('Email is required to mark by email', 'error')
     setLoading(true)
     try {
       const res = await axios.post(`${apiUrl}/api/attendance`, { sessionId, email, name, phone })
-      alert(res.data.message || 'Marked present')
+      showToast?.(res.data.message || 'Marked present', 'success')
       onMarked && onMarked()
       onClose()
     } catch (err) {
       const msg = err?.response?.data?.error || err?.response?.data?.message || err.message || 'Failed'
-      alert(msg)
+      showToast?.(msg, 'error')
     } finally {
       setLoading(false)
     }
   }
 
   async function registerAndMark() {
-    if (!apiUrl || !sessionId) return alert('Missing API or session')
-    if (!name) return alert('Name is required')
+    if (!apiUrl || !sessionId) return showToast?.('Missing API or session', 'error')
+    if (!name) return showToast?.('Name is required', 'error')
     setLoading(true)
     try {
       const res = await axios.post(`${apiUrl}/api/members`, { sessionId, name, email, phone })
-      alert(res.data.message || 'Registered and marked')
+      showToast?.(res.data.message || 'Registered and marked', 'success')
       onMarked && onMarked()
       onClose()
     } catch (err) {
       const msg = err?.response?.data?.error || err?.response?.data?.message || err.message || 'Failed'
-      alert(msg)
+      showToast?.(msg, 'error')
     } finally {
       setLoading(false)
     }

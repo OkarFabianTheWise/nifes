@@ -3,8 +3,13 @@ import mongoose from "mongoose";
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      maxPoolSize: 50, // Handle 200+ concurrent requests
+      minPoolSize: 10,
+      socketTimeoutMS: 45000,
+      retryWrites: true,
+      retryReads: true,
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
     });
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {

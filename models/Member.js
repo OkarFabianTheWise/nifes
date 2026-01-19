@@ -9,4 +9,7 @@ const memberSchema = new mongoose.Schema({
   first_scan_date: { type: Date, default: Date.now }
 });
 
+// ✅ Add index for date sorting (email, phone, memberCode are already indexed via unique constraint)
+memberSchema.index({ first_scan_date: -1 });
+
 export default mongoose.model("Member", memberSchema);

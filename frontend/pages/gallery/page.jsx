@@ -3,7 +3,7 @@
 import { useState } from "react"
 
 export default function Home() {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [selectedImage, setSelectedImage] = useState(null)
 
   const galleryImages = [
     {
