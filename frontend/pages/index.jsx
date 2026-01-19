@@ -19,6 +19,8 @@ export default function Home() {
   const [filteredMembers, setFilteredMembers] = useState([])
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   const [successMessage, setSuccessMessage] = useState(null)
+  const [loadingStats, setLoadingStats] = useState(false)
+  const [loadingPresent, setLoadingPresent] = useState(null)
 
   useEffect(() => {
     refreshStats()
@@ -42,6 +44,7 @@ export default function Home() {
 
   async function refreshStats() {
     if (!apiUrl) return
+    setLoadingStats(true)
     try {
       // Fetch all members
       const mRes = await axios.get(`${apiUrl}/api/members`)
@@ -106,6 +109,8 @@ export default function Home() {
       })
     } catch (err) {
       console.error(err)
+    } finally {
+      setLoadingStats(false)
     }
   }
 
@@ -113,13 +118,16 @@ export default function Home() {
     if (!apiUrl || !session) return alert('No session')
     const member = allMembers.find(m => m._id === memberId)
     if (!member) return alert('Member not found')
+    setLoadingPresent(memberId)
     try {
       await axios.post(`${apiUrl}/api/attendance`, { sessionId: session._id || session.id, email: member.email })
       setSearchQuery('')
-      refreshStats()
+      await refreshStats()
     } catch (err) {
       const msg = err?.response?.data?.error || err?.response?.data?.message || err.message || 'Failed'
       alert(msg)
+    } finally {
+      setLoadingPresent(null)
     }
   }
 
@@ -159,8 +167,8 @@ export default function Home() {
     <div className="container">
       <header className="card mb-6 text-center">
         <div className="flex justify-center mb-4">
-          <div className="w-12 h-12 relative">
-            <Image src="/nifes-logo.png" alt="NIFES Logo" fill className="object-contain" />
+          <div style={{width: '48px', height: '48px', position: 'relative'}}>
+            <Image src="/nifes-logo.png" alt="NIFES Logo" fill style={{objectFit: 'contain'}} />
           </div>
         </div>
         <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Fellowship Attendance Dashboard</h1>
@@ -175,12 +183,24 @@ export default function Home() {
               <h3 className="font-semibold text-lg">Quick Stats</h3>
               <Link href="/data" className="btn text-xs py-1 px-2">View Data</Link>
             </div>
-            <div className="grid grid-cols-1 gap-2">
-              <div className="border p-3 rounded bg-gradient-to-r from-blue-50 to-transparent">Total Members: <strong>{stats.totalMembers}</strong></div>
-              <div className="border p-3 rounded bg-gradient-to-r from-green-50 to-transparent">Present Today: <strong>{stats.presentToday}</strong></div>
-              <div className="border p-3 rounded bg-gradient-to-r from-purple-50 to-transparent">First Timers: <strong>{stats.firstTimers}</strong></div>
-              <div className="border p-3 rounded bg-gradient-to-r from-orange-50 to-transparent">Absent: <strong>{stats.absent}</strong></div>
-            </div>
+            {loadingStats ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin">
+                  <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+                <span className="ml-3 text-gray-600">Loading stats...</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-2">
+                <div className="border p-3 rounded bg-gradient-to-r from-blue-50 to-transparent">Total Members: <strong>{stats.totalMembers}</strong></div>
+                <div className="border p-3 rounded bg-gradient-to-r from-green-50 to-transparent">Present Today: <strong>{stats.presentToday}</strong></div>
+                <div className="border p-3 rounded bg-gradient-to-r from-purple-50 to-transparent">First Timers: <strong>{stats.firstTimers}</strong></div>
+                <div className="border p-3 rounded bg-gradient-to-r from-orange-50 to-transparent">Absent: <strong>{stats.absent}</strong></div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -240,9 +260,20 @@ export default function Home() {
                       {status !== 'Present' && (
                         <button 
                           onClick={() => markPresent(member._id)} 
-                          className="btn bg-green-500 text-white text-sm py-1 px-2 ml-2"
+                          disabled={loadingPresent === member._id}
+                          className="btn bg-green-500 text-white text-sm py-1 px-2 ml-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                         >
-                          Mark Present
+                          {loadingPresent === member._id ? (
+                            <>
+                              <svg className="animate-spin w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Marking...
+                            </>
+                          ) : (
+                            'Mark Present'
+                          )}
                         </button>
                       )}
                     </li>
