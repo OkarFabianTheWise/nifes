@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST='{"../components/QRSection.jsx -> react-qr-code":{"id":1653,"files":["static/chunks/653.de117b7256360843.js"]}}';
+self.__REACT_LOADABLE_MANIFEST="{\"../components/QRSection.jsx -> react-qr-code\":{\"id\":\"../components/QRSection.jsx -> react-qr-code\",\"files\":[\"static/chunks/node_modules_react-qr-code_lib_index_js.js\"]}}"

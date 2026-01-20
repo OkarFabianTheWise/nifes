@@ -1,7 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 
-export function StatsCard({ label, value, icon: Icon, delay = 0 }) {
+export function StatsCard({ label, value, icon: Icon, delay = 0, isLoading = false, onClick = null }) {
   return (
     <motion.div
       initial={{
@@ -16,7 +16,8 @@ export function StatsCard({ label, value, icon: Icon, delay = 0 }) {
         duration: 0.5,
         delay,
       }}
-      className="group relative overflow-hidden rounded-2xl border border-indigo-200 dark:border-white/10 bg-white/80 dark:bg-white/5 p-6 backdrop-blur-xl shadow-lg shadow-indigo-900/5 dark:shadow-none transition-all duration-300 hover:bg-white dark:hover:bg-white/10 hover:shadow-xl hover:shadow-indigo-500/10 dark:hover:shadow-blue-900/20 hover:scale-[1.02] hover:-translate-y-0.5"
+      onClick={onClick}
+      className={`group relative overflow-hidden rounded-2xl border border-indigo-200 dark:border-white/10 bg-white/80 dark:bg-white/5 p-6 backdrop-blur-xl shadow-lg shadow-indigo-900/5 dark:shadow-none transition-all duration-300 hover:bg-white dark:hover:bg-white/10 hover:shadow-xl hover:shadow-indigo-500/10 dark:hover:shadow-blue-900/20 hover:scale-[1.02] hover:-translate-y-0.5 ${onClick ? 'cursor-pointer' : ''}`}
     >
       <div className="relative z-10 flex flex-col">
         <div className="mb-4 flex items-center justify-between">
@@ -28,7 +29,13 @@ export function StatsCard({ label, value, icon: Icon, delay = 0 }) {
           )}
         </div>
         <div className="text-4xl font-light text-indigo-900 dark:text-white tracking-tight">
-          {value}
+          {isLoading ? (
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-24 bg-indigo-200 dark:bg-white/10 rounded animate-pulse" />
+            </div>
+          ) : (
+            value
+          )}
         </div>
       </div>
 

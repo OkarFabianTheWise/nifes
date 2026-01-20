@@ -17,6 +17,7 @@ import { SessionManagement } from '../components/SessionManagement'
 import MemberModal from '../components/MemberModal'
 import { useTheme } from '../hooks/useTheme'
 import { Toast } from '../components/Toast'
+import { MembersDetailsModal } from '../components/MembersDetailsModal'
 
 const RegisterMemberModal = ({ open, onClose, onRegister, showToast }) => {
   const [name, setName] = useState('')
@@ -243,6 +244,9 @@ export default function Home() {
   const [successMessage, setSuccessMessage] = useState(null)
   const [loadingStats, setLoadingStats] = useState(false)
   const [loadingPresent, setLoadingPresent] = useState(null)
+  const [showMembersModal, setShowMembersModal] = useState(false)
+  const [modalMembers, setModalMembers] = useState([])
+  const [modalTitle, setModalTitle] = useState('')
 
   // Fetch sessions on mount
   useEffect(() => {
@@ -442,6 +446,24 @@ export default function Home() {
     }
   }
 
+  function handleShowFirstTimers() {
+    const firstTimers = allMembers.filter(
+      (m) => memberStatus[m._id] === 'New'
+    )
+    setModalMembers(firstTimers)
+    setModalTitle('First Timers')
+    setShowMembersModal(true)
+  }
+
+  function handleShowAbsent() {
+    const absent = allMembers.filter(
+      (m) => memberStatus[m._id] === 'Absent'
+    )
+    setModalMembers(absent)
+    setModalTitle('Absent Members')
+    setShowMembersModal(true)
+  }
+
   // Get members with present status for roll call
   const membersForRollCall = allMembers.map((m) => ({
     ...m,
@@ -568,24 +590,30 @@ export default function Home() {
                 value={stats.totalMembers}
                 icon={Users}
                 delay={0.1}
+                isLoading={loadingStats}
               />
               <StatsCard
                 label="Present Today"
                 value={stats.presentToday}
                 icon={UserCheck}
                 delay={0.2}
+                isLoading={loadingStats}
               />
               <StatsCard
                 label="First Timers"
                 value={stats.firstTimers}
                 icon={UserPlus}
                 delay={0.3}
+                isLoading={loadingStats}
+                onClick={handleShowFirstTimers}
               />
               <StatsCard
                 label="Absent"
                 value={stats.absent}
                 icon={UserX}
                 delay={0.4}
+                isLoading={loadingStats}
+                onClick={handleShowAbsent}
               />
             </div>
 
@@ -658,6 +686,15 @@ export default function Home() {
         isOpen={showToastNotif}
         onClose={() => setShowToastNotif(false)}
       />
+
+      {/* Members Details Modal */}
+      <MembersDetailsModal
+        open={showMembersModal}
+        onClose={() => setShowMembersModal(false)}
+        members={modalMembers}
+        title={modalTitle}
+      />
+
       {successMessage && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
