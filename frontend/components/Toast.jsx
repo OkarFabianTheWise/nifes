@@ -1,17 +1,19 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, AlertCircle, X } from 'lucide-react'
 
-export function Toast({ message, type = 'success', isOpen, onClose, duration = 4000 }) {
+export function Toast({ message, type = 'success', duration = 4000 }) {
+  const [isOpen, setIsOpen] = useState(true)
+
   useEffect(() => {
-    if (!isOpen) return
-    const timer = setTimeout(onClose, duration)
+    if (!isOpen || !message) return
+    const timer = setTimeout(() => setIsOpen(false), duration)
     return () => clearTimeout(timer)
-  }, [isOpen, onClose, duration])
+  }, [isOpen, message, duration])
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen && message && (
         <motion.div
           initial={{ opacity: 0, y: -20, x: 0 }}
           animate={{ opacity: 1, y: 0, x: 0 }}
@@ -38,7 +40,7 @@ export function Toast({ message, type = 'success', isOpen, onClose, duration = 4
             {message}
           </span>
           <button
-            onClick={onClose}
+            onClick={() => setIsOpen(false)}
             className={`text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors`}
           >
             <X className="h-4 w-4" />
@@ -48,3 +50,5 @@ export function Toast({ message, type = 'success', isOpen, onClose, duration = 4
     </AnimatePresence>
   )
 }
+
+export default Toast

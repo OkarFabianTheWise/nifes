@@ -217,9 +217,22 @@ const CreateSessionModal = ({ open, onClose, onCreate, showToast }) => {
 export default function Home() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
   const { theme, toggleTheme } = useTheme()
+  const [user, setUser] = useState(null)
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
   const [showToastNotif, setShowToastNotif] = useState(false)
+
+  // Load user from localStorage on mount
+  useEffect(() => {
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData))
+      } catch (error) {
+        console.error('Failed to parse user data:', error)
+      }
+    }
+  }, [])
 
   const showToast = (message, type = 'success') => {
     setToastMessage(message)
@@ -303,15 +316,18 @@ export default function Home() {
   async function refreshStats() {
     if (!apiUrl) return
     setLoadingStats(true)
+    console.log('Refreshing stats for session:', session)
     try {
       // Fetch all members
       const mRes = await axios.get(`${apiUrl}/api/members`)
       const members = mRes.data.members || []
+      console.log('Fetched members:', members.length)
       setAllMembers(members)
 
       // Fetch current attendance
       const aRes = await axios.get(`${apiUrl}/api/attendance/current`)
       const allAttendance = aRes.data || []
+      console.log('Fetched attendance records:', allAttendance.length)
 
       const sessionId = session && (session._id || session.id)
       const sessionAttendance = sessionId
@@ -321,6 +337,7 @@ export default function Home() {
           )
         : []
       const presentCount = sessionAttendance.length
+      console.log('Present count for session:', presentCount)
 
       // Build session attendance map
       const memberSessionAttendance = {}
@@ -339,6 +356,7 @@ export default function Home() {
           const statsRes = await axios.get(`${apiUrl}/api/sessions/${sessionId}/stats`)
           firstTimersCount = statsRes.data.firstTimers || 0
           absentCount = statsRes.data.absent || 0
+          console.log('Session stats:', { firstTimersCount, absentCount })
         } catch (err) {
           console.error('Failed to fetch session stats:', err)
           firstTimersCount = 0
@@ -371,14 +389,16 @@ export default function Home() {
 
       setMemberStatus(statusMap)
 
-      setStats({
+      const newStats = {
         totalMembers: members.length,
         presentToday: presentCount,
         firstTimers: firstTimersCount,
         absent: absentCount,
-      })
+      }
+      console.log('Setting stats:', newStats)
+      setStats(newStats)
     } catch (err) {
-      console.error(err)
+      console.error('Error refreshing stats:', err)
     } finally {
       setLoadingStats(false)
     }
@@ -617,6 +637,12 @@ export default function Home() {
                 icon={Users}
                 delay={0.1}
                 isLoading={loadingStats}
+                user={user}
+                onClick={() => {
+                  setModalMembers(allMembers)
+                  setModalTitle('All Members')
+                  setShowMembersModal(true)
+                }}
               />
               <StatsCard
                 label="Present Today"
@@ -624,6 +650,7 @@ export default function Home() {
                 icon={UserCheck}
                 delay={0.2}
                 isLoading={loadingStats}
+                user={user}
                 onClick={handleShowPresent}
               />
               <StatsCard
@@ -632,6 +659,7 @@ export default function Home() {
                 icon={UserPlus}
                 delay={0.3}
                 isLoading={loadingStats}
+                user={user}
                 onClick={handleShowFirstTimers}
               />
               <StatsCard
@@ -640,6 +668,7 @@ export default function Home() {
                 icon={UserX}
                 delay={0.4}
                 isLoading={loadingStats}
+                user={user}
                 onClick={handleShowAbsent}
               />
             </div>
@@ -672,6 +701,7 @@ export default function Home() {
               onRefresh={refreshStats}
               onNewSession={() => setShowNewSessionModal(true)}
               isLoadingStats={loadingStats}
+              user={user}
             />
           </div>
         </div>

@@ -6,8 +6,10 @@ export function SessionManagement({
   onRefresh,
   onNewSession,
   isLoadingStats,
+  user,
 }) {
   const isTesting = process.env.NEXT_PUBLIC_TESTING === 'true';
+  const isAdmin = user && ['superadmin', 'admin'].includes(user.role);
 
   const formatDate = (dateString) => {
     if (!dateString) return 'No date';
@@ -43,11 +45,16 @@ export function SessionManagement({
         </div>
         <div className="flex items-center gap-2">
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={isAdmin ? { scale: 1.05 } : {}}
+            whileTap={isAdmin ? { scale: 0.95 } : {}}
             onClick={onNewSession}
-            className="p-2 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
-            title="Create new session"
+            disabled={!isAdmin}
+            className={`p-2 rounded-lg transition-colors ${
+              isAdmin
+                ? 'hover:bg-indigo-100 dark:hover:bg-indigo-900/30 cursor-pointer'
+                : 'cursor-not-allowed opacity-50'
+            }`}
+            title={isAdmin ? 'Create new session' : 'Only admins can create sessions'}
           >
             <Plus className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           </motion.button>
