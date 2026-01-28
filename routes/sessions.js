@@ -56,11 +56,58 @@ router.post("/", async (req, res) => {
   }
 });
 
-// GET session stats (example placeholder)
+// GET session stats (first timers, absentees, attendance for this session)
 router.get("/:id/stats", async (req, res) => {
   try {
-    // TODO: compute attendance count, first-timers, etc.
-    res.json({ total: 0, firstTimers: 0 });
+    const { id: sessionId } = req.params;
+
+    // Import Attendance model
+    const AttendanceRecord = (await import("../models/AttendanceRecord.js")).default;
+    const Member = (await import("../models/Member.js")).default;
+
+    // Get all attendance records for this session
+    const sessionAttendance = await AttendanceRecord.find({ sessionId }).populate("memberId");
+    const presentMemberIds = new Set(
+      sessionAttendance.map(r => r.memberId._id.toString())
+    );
+
+    // Get all members
+    const allMembers = await Member.find();
+
+    // Count first timers: members with ONLY 1 attendance record ever (first time attending ANY session)
+    const memberAttendanceCounts = {};
+    const allAttendance = await AttendanceRecord.find();
+
+    allAttendance.forEach(record => {
+      const memberId = record.memberId.toString ? record.memberId.toString() : record.memberId;
+      memberAttendanceCounts[memberId] = (memberAttendanceCounts[memberId] || 0) + 1;
+    });
+
+    // First timers are those with attendance count = 1 AND present in THIS session
+    const firstTimers = sessionAttendance.filter(r => {
+      const memberId = r.memberId._id.toString();
+      return memberAttendanceCounts[memberId] === 1;
+    }).length;
+
+    // Absentees are previous attendees (attendance count > 0) who are absent from THIS session
+    let absentCount = 0;
+    allMembers.forEach(member => {
+      const memberId = member._id.toString();
+      const attendanceCount = memberAttendanceCounts[memberId] || 0;
+      const isPresentThisSession = presentMemberIds.has(memberId);
+
+      // Count as absent if: attended before (count > 0) AND not present this session
+      if (attendanceCount > 0 && !isPresentThisSession) {
+        absentCount++;
+      }
+    });
+
+    res.json({
+      total: sessionAttendance.length,
+      firstTimers,
+      absent: absentCount,
+      allAttendanceCount: allAttendance.length
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
