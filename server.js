@@ -22,7 +22,7 @@ connectDB();
 initializeSuperadmins();
 
 // ✅ CORS: allow requests from configured frontend and localhost during development
-const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:3000', 'https://fellowship-attendance.vercel.app'].filter(Boolean);
+const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:3000', 'https://fellowship-attendance.vercel.app', 'https://nifesapp.vercel.app'].filter(Boolean);
 app.use(cors({
   origin: function (origin, callback) {
     // allow requests with no origin (like curl, Postman)
