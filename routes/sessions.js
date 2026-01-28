@@ -1,6 +1,7 @@
 import express from "express";
 import QRCode from "qrcode";
 import Session from "../models/Session.js";
+import { authenticateToken, authorize } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -24,8 +25,8 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST create new session
-router.post("/", async (req, res) => {
+// POST create new session (admin only)
+router.post("/", authenticateToken, authorize("superadmin", "admin"), async (req, res) => {
   try {
     const { name } = req.body;
     if (!name) {

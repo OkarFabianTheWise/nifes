@@ -9,11 +9,17 @@ import sessionRoutes from "./routes/sessions.js";
 import attendanceRoutes from "./routes/attendance.js";
 import attendeeRoutes from "./routes/attendeeRoutes.js";
 import scanRoutes from "./routes/scan.js";
+import authRoutes, { initializeSuperadmins } from "./routes/auth.js";
+import adminRoutes from "./routes/admin.js";
+import { authenticateToken, authorize } from "./middleware/authMiddleware.js";
 
 
 dotenv.config();
 const app = express();
 connectDB();
+
+// Initialize superadmins
+initializeSuperadmins();
 
 // ✅ CORS: allow requests from configured frontend and localhost during development
 const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:3000', 'https://fellowship-attendance.vercel.app'].filter(Boolean);
@@ -53,12 +59,16 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // Root route
 app.get("/", (req, res) => res.send("✅ API is running"));
 
-// Routes
+// Auth routes (public)
+app.use("/api/auth", authRoutes);
+
+// Routes (public for reading, protected for creating/modifying)
 app.use("/api/members", memberRoutes);
 app.use("/api/sessions", sessionRoutes);
-app.use("/api/attendance", attendanceRoutes);
-app.use("/api/attendees", attendeeRoutes);
-app.use("/api/scan", scanLimiter, scanRoutes); // Stricter rate limit for scan
+app.use("/api/attendance", attendanceRoutes); // Mark attendance can be public or restricted
+app.use("/api/attendees", authenticateToken, authorize("superadmin", "admin"), attendeeRoutes);
+app.use("/api/scan", scanLimiter, scanRoutes); // QR scan can be public
+app.use("/api/admin", adminRoutes); // Admin dashboard routes (protected internally)
 
 // Error handling middleware
 app.use((err, req, res, next) => {
