@@ -242,6 +242,16 @@ export default function Home() {
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   const [showNewSessionModal, setShowNewSessionModal] = useState(false)
   const [successMessage, setSuccessMessage] = useState(null)
+
+  // Auto-close success message after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [successMessage])
   const [loadingStats, setLoadingStats] = useState(false)
   const [loadingPresent, setLoadingPresent] = useState(null)
   const [showMembersModal, setShowMembersModal] = useState(false)

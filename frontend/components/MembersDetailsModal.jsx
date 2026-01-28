@@ -5,6 +5,7 @@ import { X, Phone, Mail, MapPin, User, Send } from 'lucide-react'
 export function MembersDetailsModal({ open, onClose, members, title }) {
   const [showMessageModal, setShowMessageModal] = useState(false)
   const [messageText, setMessageText] = useState('')
+  const [subjectText, setSubjectText] = useState('')
 
   const handleSendMessage = () => {
     if (!messageText.trim()) {
@@ -12,24 +13,33 @@ export function MembersDetailsModal({ open, onClose, members, title }) {
       return
     }
 
+    if (!subjectText.trim()) {
+      alert('Please enter a subject')
+      return
+    }
+
     // Collect all email addresses
     const emails = members
       .filter((m) => m.email)
       .map((m) => m.email)
-      .join(',')
+      .join(', ')
 
     if (!emails) {
       alert('No email addresses found for this group')
       return
     }
 
-    // Open mailto with pre-filled subject and body
-    const subject = `Message from Attendance System: ${title}`
-    const body = messageText
-    const mailtoLink = `mailto:${emails}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-
-    window.location.href = mailtoLink
+    // Use setTimeout to allow state updates and then open mailto
+    setTimeout(() => {
+      // Create mailto link with proper encoding
+      const mailtoLink = `mailto:${emails}?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(messageText)}`
+      
+      // Open the mailto link directly
+      window.location.href = mailtoLink
+    }, 100)
+    
     setMessageText('')
+    setSubjectText('')
     setShowMessageModal(false)
   }
 
@@ -173,7 +183,20 @@ export function MembersDetailsModal({ open, onClose, members, title }) {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2">
-                  Message
+                  Subject *
+                </label>
+                <input
+                  type="text"
+                  value={subjectText}
+                  onChange={(e) => setSubjectText(e.target.value)}
+                  placeholder="Enter email subject..."
+                  className="w-full p-3 border border-stone-200 dark:border-white/10 rounded-lg bg-stone-50 dark:bg-black/20 text-stone-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2">
+                  Message *
                 </label>
                 <textarea
                   value={messageText}
@@ -195,6 +218,7 @@ export function MembersDetailsModal({ open, onClose, members, title }) {
                 onClick={() => {
                   setShowMessageModal(false)
                   setMessageText('')
+                  setSubjectText('')
                 }}
                 className="px-4 py-2 bg-gray-300 dark:bg-white/10 text-gray-900 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-white/20 transition-colors"
               >
