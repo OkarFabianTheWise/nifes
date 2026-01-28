@@ -1,8 +1,38 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { X, Phone, Mail, MapPin, User } from 'lucide-react'
+import { X, Phone, Mail, MapPin, User, Send } from 'lucide-react'
 
 export function MembersDetailsModal({ open, onClose, members, title }) {
+  const [showMessageModal, setShowMessageModal] = useState(false)
+  const [messageText, setMessageText] = useState('')
+
+  const handleSendMessage = () => {
+    if (!messageText.trim()) {
+      alert('Please enter a message')
+      return
+    }
+
+    // Collect all email addresses
+    const emails = members
+      .filter((m) => m.email)
+      .map((m) => m.email)
+      .join(',')
+
+    if (!emails) {
+      alert('No email addresses found for this group')
+      return
+    }
+
+    // Open mailto with pre-filled subject and body
+    const subject = `Message from Attendance System: ${title}`
+    const body = messageText
+    const mailtoLink = `mailto:${emails}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+
+    window.location.href = mailtoLink
+    setMessageText('')
+    setShowMessageModal(false)
+  }
+
   if (!open) return null
 
   return (
@@ -99,14 +129,88 @@ export function MembersDetailsModal({ open, onClose, members, title }) {
           <span className="text-sm text-stone-600 dark:text-gray-400">
             Total: <strong>{members ? members.length : 0}</strong>
           </span>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors"
-          >
-            Close
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowMessageModal(true)}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors flex items-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              Message
+            </button>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </motion.div>
+
+      {/* Message Modal */}
+      {showMessageModal && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
+        >
+          <div className="bg-white dark:bg-white/10 rounded-2xl border border-stone-200 dark:border-white/10 backdrop-blur-xl w-full max-w-md">
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 border-b border-stone-200 dark:border-white/10">
+              <h3 className="text-xl font-bold text-stone-900 dark:text-white">
+                Send Message to {title}
+              </h3>
+              <button
+                onClick={() => setShowMessageModal(false)}
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2">
+                  Message
+                </label>
+                <textarea
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="Type your message here..."
+                  className="w-full p-3 border border-stone-200 dark:border-white/10 rounded-lg bg-stone-50 dark:bg-black/20 text-stone-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 resize-none"
+                  rows="5"
+                />
+              </div>
+
+              <div className="text-sm text-stone-600 dark:text-gray-400">
+                <p>This will open your email client with all {title.toLowerCase()} emails pre-filled.</p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-stone-200 dark:border-white/10 flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowMessageModal(false)
+                  setMessageText('')
+                }}
+                className="px-4 py-2 bg-gray-300 dark:bg-white/10 text-gray-900 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-white/20 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendMessage}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors flex items-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                Send
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   )
 }

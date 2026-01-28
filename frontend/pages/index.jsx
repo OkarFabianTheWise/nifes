@@ -321,12 +321,23 @@ export default function Home() {
         }
       })
 
-      // Determine status for each member
-      const statusMap = {}
-      const now = new Date()
-      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+      // Fetch session-specific stats (first timers, absentees)
       let firstTimersCount = 0
+      let absentCount = 0
+      if (sessionId) {
+        try {
+          const statsRes = await axios.get(`${apiUrl}/api/sessions/${sessionId}/stats`)
+          firstTimersCount = statsRes.data.firstTimers || 0
+          absentCount = statsRes.data.absent || 0
+        } catch (err) {
+          console.error('Failed to fetch session stats:', err)
+          firstTimersCount = 0
+          absentCount = 0
+        }
+      }
 
+      // Determine status for each member (Present, New/FirstTimer, or Absent)
+      const statusMap = {}
       members.forEach((m) => {
         const mid = m._id
         const isPresent = memberSessionAttendance[mid]
@@ -334,16 +345,14 @@ export default function Home() {
         if (isPresent) {
           statusMap[mid] = 'Present'
         } else {
-          // Check if first timer (registered < 24 hours ago)
-          const registrationDate = m.first_scan_date
-            ? new Date(m.first_scan_date)
-            : null
-          const isFirstTimer =
-            registrationDate && registrationDate > twentyFourHoursAgo
+          // Check if first timer (first attendance ever AND present in this session)
+          // We'll determine this by checking against allAttendance
+          const memberAttendanceCount = allAttendance.filter(
+            (r) => r.memberId && (r.memberId._id || r.memberId) === mid
+          ).length
 
-          if (isFirstTimer) {
+          if (memberAttendanceCount === 0) {
             statusMap[mid] = 'New'
-            firstTimersCount++
           } else {
             statusMap[mid] = 'Absent'
           }
@@ -351,8 +360,6 @@ export default function Home() {
       })
 
       setMemberStatus(statusMap)
-
-      const absentCount = members.length - presentCount
 
       setStats({
         totalMembers: members.length,
@@ -461,6 +468,15 @@ export default function Home() {
     )
     setModalMembers(absent)
     setModalTitle('Absent Members')
+    setShowMembersModal(true)
+  }
+
+  function handleShowPresent() {
+    const present = allMembers.filter(
+      (m) => memberStatus[m._id] === 'Present'
+    )
+    setModalMembers(present)
+    setModalTitle('Present Members')
     setShowMembersModal(true)
   }
 
@@ -598,6 +614,7 @@ export default function Home() {
                 icon={UserCheck}
                 delay={0.2}
                 isLoading={loadingStats}
+                onClick={handleShowPresent}
               />
               <StatsCard
                 label="First Timers"
