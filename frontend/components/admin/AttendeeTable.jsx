@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Toast from '../Toast';
 
 export default function AttendeeTable({ attendees }) {

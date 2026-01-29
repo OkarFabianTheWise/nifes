@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useRouter } from 'next/router';
 import Toast from '../Toast';
 
 export default function SessionTable({ sessions }) {
+  const router = useRouter();
   const [expandedSession, setExpandedSession] = useState(null);
   const [sessionDetails, setSessionDetails] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -32,6 +34,10 @@ export default function SessionTable({ sessions }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleViewInHome = (sessionId) => {
+    router.push({ pathname: '/', query: { sessionId } });
   };
 
   return (
@@ -77,47 +83,14 @@ export default function SessionTable({ sessions }) {
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <button
-                        onClick={() => handleViewDetails(session._id)}
+                        onClick={() => handleViewInHome(session._id)}
                         className="text-blue-600 hover:text-blue-800 font-medium"
                       >
-                        {expandedSession === session._id ? 'Hide' : 'View'}
+                        View
                       </button>
                     </td>
                   </tr>
 
-                  {expandedSession === session._id && sessionDetails && (
-                    <tr className="bg-gray-50 border-b">
-                      <td colSpan="5" className="px-6 py-6">
-                        <div>
-                          <h4 className="font-semibold text-gray-900 mb-4">Attendees</h4>
-                          <div className="space-y-2 max-h-96 overflow-y-auto">
-                            {sessionDetails.attendees && sessionDetails.attendees.length > 0 ? (
-                              sessionDetails.attendees.map((attendance, idx) => (
-                                <div
-                                  key={idx}
-                                  className="flex justify-between items-center bg-white p-3 rounded border border-gray-200"
-                                >
-                                  <div>
-                                    <p className="font-medium text-gray-900">
-                                      {attendance.memberId?.name || 'Unknown'}
-                                    </p>
-                                    <p className="text-sm text-gray-600">
-                                      {attendance.memberId?.email || 'N/A'}
-                                    </p>
-                                  </div>
-                                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                                    ✅ Present
-                                  </span>
-                                </div>
-                              ))
-                            ) : (
-                              <p className="text-gray-500">No attendees recorded</p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
                 </React.Fragment>
               ))
             )}

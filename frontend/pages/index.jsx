@@ -381,24 +381,11 @@ export default function Home() {
         }
       })
 
-      // Fetch session-specific stats (first timers, absentees)
-      let firstTimersCount = 0
-      let absentCount = 0
-      if (sessionId) {
-        try {
-          const statsRes = await axios.get(`${apiUrl}/api/sessions/${sessionId}/stats`)
-          firstTimersCount = statsRes.data.firstTimers || 0
-          absentCount = statsRes.data.absent || 0
-          console.log('Session stats:', { firstTimersCount, absentCount })
-        } catch (err) {
-          console.error('Failed to fetch session stats:', err)
-          firstTimersCount = 0
-          absentCount = 0
-        }
-      }
-
       // Determine status for each member (Present, New/FirstTimer, or Absent)
       const statusMap = {}
+      let firstTimersCount = 0
+      let absentCount = 0
+
       members.forEach((m) => {
         const mid = m._id
         const isPresent = memberSessionAttendance[mid]
@@ -406,8 +393,7 @@ export default function Home() {
         if (isPresent) {
           statusMap[mid] = 'Present'
         } else {
-          // Check if first timer (first attendance ever AND present in this session)
-          // We'll determine this by checking against allAttendance
+          // Check if first timer (first attendance ever)
           const memberAttendanceCount = allAttendance.filter(
             (r) => r.memberId && (r.memberId._id || r.memberId) === mid
           ).length
@@ -416,9 +402,23 @@ export default function Home() {
             statusMap[mid] = 'New'
           } else {
             statusMap[mid] = 'Absent'
+            absentCount++
           }
         }
       })
+
+      // Fetch first timers count from session stats (admin may have additional filtering, but absent is now calculated locally)
+      if (sessionId) {
+        try {
+          const statsRes = await axios.get(`${apiUrl}/api/sessions/${sessionId}/stats`)
+          firstTimersCount = statsRes.data.firstTimers || 0
+          console.log('Session first timers:', firstTimersCount)
+        } catch (err) {
+          console.error('Failed to fetch session stats:', err)
+          // Count first timers locally as fallback
+          firstTimersCount = Object.values(statusMap).filter(s => s === 'New').length
+        }
+      }
 
       setMemberStatus(statusMap)
 
