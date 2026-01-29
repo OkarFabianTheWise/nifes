@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter } from 'next/router';
 
 export default function DashboardStats({ stats }) {
   if (!stats) {
@@ -12,9 +13,11 @@ export default function DashboardStats({ stats }) {
     );
   }
 
+  const router = useRouter();
+
   const statCards = [
-    { label: 'Total Sessions', value: stats.totalSessions, icon: '📅', color: 'blue' },
-    { label: 'Active Sessions', value: stats.activeSessions, icon: '🟢', color: 'green' },
+    { label: 'Total Sessions', value: stats.totalSessions, icon: '📅', color: 'blue', clickable: true, target: { view: 'sessions' } },
+    { label: 'Active Sessions', value: stats.activeSessions, icon: '🟢', color: 'green', clickable: true, target: { sessionId: stats.activeSessionId || null, view: stats.activeSessionId ? null : 'active' } },
     { label: 'Total Members', value: stats.totalMembers, icon: '👥', color: 'purple' },
     { label: 'Total Attendance', value: stats.totalAttendance, icon: '✅', color: 'orange' }
   ];
@@ -26,7 +29,22 @@ export default function DashboardStats({ stats }) {
         {statCards.map((card, idx) => (
           <div
             key={idx}
-            className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition"
+            role={card.clickable ? 'button' : undefined}
+            onClick={card.clickable ? () => {
+              if (card.target) {
+                const { sessionId, view } = card.target;
+                if (sessionId) {
+                  router.push({ pathname: '/', query: { sessionId } });
+                } else if (view) {
+                  router.push({ pathname: '/', query: { view } });
+                } else {
+                  router.push('/');
+                }
+              } else {
+                router.push('/');
+              }
+            } : undefined}
+            className={`bg-white rounded-lg shadow p-6 transition ${card.clickable ? 'hover:shadow-lg cursor-pointer' : ''}`}
           >
             <div className="flex items-center justify-between">
               <div>

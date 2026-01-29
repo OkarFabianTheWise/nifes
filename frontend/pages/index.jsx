@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
 import {
   Users,
@@ -217,6 +218,7 @@ const CreateSessionModal = ({ open, onClose, onCreate, showToast }) => {
 export default function Home() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
   const { theme, toggleTheme } = useTheme()
+  const router = useRouter()
   const [user, setUser] = useState(null)
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
@@ -276,6 +278,37 @@ export default function Home() {
     fetchSessions()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiUrl])
+
+  // If URL contains sessionId or view=active, select that session
+  useEffect(() => {
+    if (!router.isReady) return
+    const { sessionId, view } = router.query
+    if (sessionId) {
+      if (sessions && sessions.length > 0) {
+        const found = sessions.find((s) => (s._id || s.id) === sessionId)
+        if (found) {
+          setSession(found)
+          return
+        }
+      }
+
+      // fallback: try fetching the session by id
+      ;(async () => {
+        try {
+          const res = await axios.get(`${apiUrl}/api/sessions/${sessionId}`)
+          const s = res.data.session || res.data
+          if (s) setSession(s)
+        } catch (err) {
+          console.error('Failed to fetch session by id from query:', err)
+        }
+      })()
+    } else if (view === 'active') {
+      if (sessions && sessions.length > 0) {
+        setSession(sessions[0])
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, router.query, sessions, apiUrl])
 
   useEffect(() => {
     refreshStats()
@@ -460,10 +493,16 @@ export default function Home() {
     if (!sessionName.trim()) return showToast('Session name is required', 'error')
     
     try {
-      const response = await axios.post(`${apiUrl}/api/sessions`, {
-        name: sessionName,
-        date: new Date(),
-      })
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      if (!token) return showToast('You must be logged in as an admin to create a session', 'error')
+      const response = await axios.post(
+        `${apiUrl}/api/sessions`,
+        {
+          name: sessionName,
+          date: new Date(),
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
       const newSession = response.data.session || response.data
       setSession(newSession)
       setSessions([...sessions, newSession])

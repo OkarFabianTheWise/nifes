@@ -31,7 +31,17 @@ export default function SessionManager({ apiUrl, onSessionChange }) {
     if (!apiUrl || !sessionName.trim()) return
     setLoading(true)
     try {
-      const res = await axios.post(`${apiUrl}/api/sessions`, { name: sessionName.trim() })
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      if (!token) {
+        alert('You must be logged in as an admin to create a session')
+        setLoading(false)
+        return
+      }
+      const res = await axios.post(
+        `${apiUrl}/api/sessions`,
+        { name: sessionName.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
       const s = res.data.session || res.data
       setSession(s)
       onSessionChange && onSessionChange(s)
