@@ -23,8 +23,6 @@ export function StatsCard({ label, value, icon: Icon, delay = 0, isLoading = fal
       className={`group relative overflow-hidden rounded-2xl border border-indigo-200 dark:border-white/10 bg-white/80 dark:bg-white/5 p-6 backdrop-blur-xl shadow-lg shadow-indigo-900/5 dark:shadow-none transition-all duration-300 ${
         isClickable
           ? 'hover:bg-white dark:hover:bg-white/10 hover:shadow-xl hover:shadow-indigo-500/10 dark:hover:shadow-blue-900/20 hover:scale-[1.02] hover:-translate-y-0.5 cursor-pointer'
-          : onClick && !isAdmin
-          ? 'opacity-60 cursor-not-allowed'
           : ''
       }`}
       title={onClick && !isAdmin ? 'Only admins can view details' : ''}
