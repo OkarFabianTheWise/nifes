@@ -220,6 +220,9 @@ export default function Home() {
   const { theme, toggleTheme } = useTheme()
   const router = useRouter()
   const [user, setUser] = useState(null)
+
+  // determine if the currently loaded user is an admin
+  const isAdmin = user && (user.role === 'admin' || user.role === 'superadmin' || (Array.isArray(user.roles) && (user.roles.includes('admin') || user.roles.includes('superadmin'))))
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
   const [showToastNotif, setShowToastNotif] = useState(false)
@@ -728,9 +731,16 @@ export default function Home() {
           {/* Right Column - Actions & QR */}
           <div className="space-y-6 lg:col-span-5">
             <QRSection session={session} attendanceUrl={attendanceUrl} />
-            <div className="mt-4">
-              <button onClick={() => setExportOpen(true)} className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-500">Export Session Data</button>
-            </div>
+            {isAdmin && (
+              <div className="mt-4">
+                <button
+                  onClick={() => setExportOpen(true)}
+                  className={`px-3 py-2 rounded ${theme === 'dark' ? 'bg-white/10 text-white border border-white/10' : 'bg-blue-600 text-white hover:bg-blue-500'}`}
+                >
+                  Export Session Data
+                </button>
+              </div>
+            )}
             <AttendanceActions
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
@@ -801,7 +811,7 @@ export default function Home() {
       {/* Export Modal (uses client-side attendanceRecords and allMembers) */}
       {exportOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md border border-stone-200 dark:border-white/10">
+          <div className="rounded-2xl p-6 w-full max-w-md border-stone-200 bg-white dark:bg-[#0a0a0a] dark:text-white dark:border-white/10">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Export Session Data</h3>
               <button onClick={() => setExportOpen(false)} className="text-gray-600">✕</button>

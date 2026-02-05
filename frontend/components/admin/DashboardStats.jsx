@@ -2,6 +2,7 @@
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import Toast from '../Toast';
+import { useTheme } from '../../hooks/useTheme';
 
 export default function DashboardStats({ stats }) {
   if (!stats) {
@@ -16,6 +17,8 @@ export default function DashboardStats({ stats }) {
   }
 
   const router = useRouter();
+
+  const { theme } = useTheme();
 
   const [exportOpen, setExportOpen] = useState(false);
   const [exportOptions, setExportOptions] = useState({ present: true, absent: false, firstTimer: false });
@@ -116,7 +119,7 @@ export default function DashboardStats({ stats }) {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900">Dashboard Overview</h2>
         <div>
-          <button onClick={() => setExportOpen(true)} className="text-sm text-gray-600 hover:text-gray-900">Export</button>
+          <button onClick={() => setExportOpen(true)} className={theme === 'dark' ? 'text-sm text-white/90 hover:text-white' : 'text-sm text-gray-600 hover:text-gray-900'}>Export</button>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -158,7 +161,7 @@ export default function DashboardStats({ stats }) {
 
       {exportOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white rounded-lg shadow p-6 w-96">
+          <div className="rounded-lg shadow p-6 w-96 bg-white dark:bg-gray-900 dark:text-white dark:border-white/10">
             <h3 className="text-lg font-semibold mb-4">Export Data</h3>
             <div className="mb-3">
               <label className="block font-medium">Source</label>

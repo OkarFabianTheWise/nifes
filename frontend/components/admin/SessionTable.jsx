@@ -242,7 +242,7 @@ export default function SessionTable({ sessions }) {
 
       {exportSessionId && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white rounded-lg shadow p-6 w-96">
+          <div className="rounded-lg shadow p-6 w-96 bg-white dark:bg-gray-900 dark:text-white dark:border-white/10">
             <h3 className="text-lg font-semibold mb-4">Export Session</h3>
             <div className="space-y-3">
               <div className="flex items-center">
