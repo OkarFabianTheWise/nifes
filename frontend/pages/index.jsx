@@ -834,24 +834,29 @@ export default function Home() {
                   }
 
                   const dateKey = (d) => (d ? new Date(d).toISOString().slice(0, 10) : null)
-                  const isFirst = (member, record) => {
-                    if (!member || !member.first_scan_date || !record || !record.timestamp) return false
-                    return dateKey(member.first_scan_date) === dateKey(record.timestamp)
+                  const isFirst = (member) => {
+                    if (!member || !member.first_scan_date) return false
+                    // A first timer is someone whose first scan date is today (session date)
+                    return dateKey(member.first_scan_date) === dateKey(session?.date)
                   }
 
-                  // Present: from attendanceRecords filtered by sessionId
-                  const presentRecords = attendanceRecords.filter(r => r.sessionId && (r.sessionId._id || r.sessionId) === sessionId)
-
-                  // Absent: members where memberStatus is 'Absent'
+                  // Build rows from allMembers based on memberStatus (this matches the UI calculation)
+                  const presentMembers = allMembers.filter(m => memberStatus[m._id] === 'Present')
                   const absentMembers = allMembers.filter(m => memberStatus[m._id] === 'Absent')
 
                   let rows = []
 
-                  if (exportOptions.present) {
-                    // map presentRecords to full rows
-                    const prs = presentRecords.map(r => {
-                      const m = r.memberId || allMembers.find(x => (x._id || x.id) === (r.memberId && (r.memberId._id || r.memberId))) || {}
-                      const first = isFirst(m, r)
+                  // Export present records
+                  if (exportOptions.present || exportOptions.firstTimer) {
+                    let toInclude = presentMembers
+                    
+                    // Filter to first timers only if specified
+                    if (exportOptions.firstTimer) {
+                      toInclude = toInclude.filter(m => isFirst(m))
+                    }
+                    
+                    const presentRows = toInclude.map(m => {
+                      const first = isFirst(m)
                       return {
                         Name: m.name || '',
                         Email: m.email || '',
@@ -860,15 +865,16 @@ export default function Home() {
                         MemberCode: m.memberCode || '',
                         FirstScanDate: m.first_scan_date ? new Date(m.first_scan_date).toISOString() : '',
                         MemberType: first ? 'FirstTimer' : 'Member',
-                        AttendanceStatus: r.status || 'present',
-                        AttendanceTimestamp: r.timestamp ? new Date(r.timestamp).toISOString() : '',
+                        AttendanceStatus: 'present',
+                        AttendanceTimestamp: m.timestamp ? new Date(m.timestamp).toISOString() : '',
                       }
                     })
-                    rows = rows.concat(prs)
+                    rows = rows.concat(presentRows)
                   }
 
+                  // Export absent records
                   if (exportOptions.absent) {
-                    const abs = absentMembers.map(m => ({
+                    const absentRows = absentMembers.map(m => ({
                       Name: m.name || '',
                       Email: m.email || '',
                       Phone: m.phone || '',
@@ -879,27 +885,7 @@ export default function Home() {
                       AttendanceStatus: 'absent',
                       AttendanceTimestamp: '',
                     }))
-                    rows = rows.concat(abs)
-                  }
-
-                  if (exportOptions.firstTimer && !exportOptions.present && !exportOptions.absent) {
-                    // export first timers among all members for this session
-                    const prs = presentRecords.map(r => {
-                      const m = r.memberId || allMembers.find(x => (x._id || x.id) === (r.memberId && (r.memberId._id || r.memberId))) || {}
-                      const first = isFirst(m, r)
-                      return first ? {
-                        Name: m.name || '',
-                        Email: m.email || '',
-                        Phone: m.phone || '',
-                        Address: m.address || '',
-                        MemberCode: m.memberCode || '',
-                        FirstScanDate: m.first_scan_date ? new Date(m.first_scan_date).toISOString() : '',
-                        MemberType: 'FirstTimer',
-                        AttendanceStatus: r.status || 'present',
-                        AttendanceTimestamp: r.timestamp ? new Date(r.timestamp).toISOString() : '',
-                      } : null
-                    }).filter(Boolean)
-                    rows = rows.concat(prs)
+                    rows = rows.concat(absentRows)
                   }
 
                   if (rows.length === 0) {
@@ -917,8 +903,10 @@ export default function Home() {
                   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
                   const link = document.createElement('a')
                   const url = URL.createObjectURL(blob)
+                  const sessionName = session?.name || 'session'
+                  const sanitized = sessionName.replace(/[^a-z0-9]/gi, '_').toLowerCase()
                   link.setAttribute('href', url)
-                  link.setAttribute('download', `session-${sessionId}-export.csv`)
+                  link.setAttribute('download', `${sanitized}-export.csv`)
                   document.body.appendChild(link)
                   link.click()
                   document.body.removeChild(link)

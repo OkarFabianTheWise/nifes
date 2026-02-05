@@ -94,7 +94,9 @@ export default function DashboardStats({ stats }) {
         };
       });
 
-      downloadCSV(rows, `session-${sessionId}-dashboard-export.csv`);
+      const sessionName = stats?.activeSessionId ? 'active_session' : 'session';
+      const sanitized = sessionName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      downloadCSV(rows, `${sanitized}-export.csv`);
       setToast({ type: 'success', message: 'Export started' });
     } catch (err) {
       console.error('Dashboard export error', err);

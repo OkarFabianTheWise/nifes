@@ -157,7 +157,9 @@ export default function SessionTable({ sessions }) {
         };
       });
 
-      const filename = `session-${sessionId}-export.csv`;
+      const sessionName = sessions?.find(s => s._id === sessionId)?.name || 'session';
+      const sanitized = sessionName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const filename = `${sanitized}-export.csv`;
       downloadCSV(rows, filename);
       setToast({ type: 'success', message: 'Export started' });
       setExportSessionId(null);
