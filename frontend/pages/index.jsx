@@ -250,6 +250,9 @@ export default function Home() {
     firstTimers: 0,
     absent: 0,
   })
+  const [attendanceRecords, setAttendanceRecords] = useState([])
+  const [exportOpen, setExportOpen] = useState(false)
+  const [exportOptions, setExportOptions] = useState({ present: true, absent: false, firstTimer: false })
   const [searchQuery, setSearchQuery] = useState('')
   const [allMembers, setAllMembers] = useState([])
   const [memberStatus, setMemberStatus] = useState({})
@@ -360,6 +363,7 @@ export default function Home() {
       // Fetch current attendance
       const aRes = await axios.get(`${apiUrl}/api/attendance/current`)
       const allAttendance = aRes.data || []
+      setAttendanceRecords(allAttendance)
       console.log('Fetched attendance records:', allAttendance.length)
 
       const sessionId = session && (session._id || session.id)
@@ -724,6 +728,9 @@ export default function Home() {
           {/* Right Column - Actions & QR */}
           <div className="space-y-6 lg:col-span-5">
             <QRSection session={session} attendanceUrl={attendanceUrl} />
+            <div className="mt-4">
+              <button onClick={() => setExportOpen(true)} className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-500">Export Session Data</button>
+            </div>
             <AttendanceActions
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
@@ -790,6 +797,142 @@ export default function Home() {
         members={modalMembers}
         title={modalTitle}
       />
+
+      {/* Export Modal (uses client-side attendanceRecords and allMembers) */}
+      {exportOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md border border-stone-200 dark:border-white/10">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Export Session Data</h3>
+              <button onClick={() => setExportOpen(false)} className="text-gray-600">✕</button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <input id="e_present" type="checkbox" checked={exportOptions.present} onChange={() => setExportOptions(s => ({ ...s, present: !s.present }))} />
+                <label htmlFor="e_present">Present</label>
+              </div>
+              <div className="flex items-center gap-3">
+                <input id="e_absent" type="checkbox" checked={exportOptions.absent} onChange={() => setExportOptions(s => ({ ...s, absent: !s.absent }))} />
+                <label htmlFor="e_absent">Absent</label>
+              </div>
+              <div className="flex items-center gap-3">
+                <input id="e_first" type="checkbox" checked={exportOptions.firstTimer} onChange={() => setExportOptions(s => ({ ...s, firstTimer: !s.firstTimer }))} />
+                <label htmlFor="e_first">First Timer</label>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setExportOpen(false)} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+              <button
+                onClick={() => {
+                  // Build CSV from client data
+                  const sessionId = session && (session._id || session.id)
+                  if (!sessionId) {
+                    alert('No session selected')
+                    return
+                  }
+
+                  const dateKey = (d) => (d ? new Date(d).toISOString().slice(0, 10) : null)
+                  const isFirst = (member, record) => {
+                    if (!member || !member.first_scan_date || !record || !record.timestamp) return false
+                    return dateKey(member.first_scan_date) === dateKey(record.timestamp)
+                  }
+
+                  // Present: from attendanceRecords filtered by sessionId
+                  const presentRecords = attendanceRecords.filter(r => r.sessionId && (r.sessionId._id || r.sessionId) === sessionId)
+
+                  // Absent: members where memberStatus is 'Absent'
+                  const absentMembers = allMembers.filter(m => memberStatus[m._id] === 'Absent')
+
+                  let rows = []
+
+                  if (exportOptions.present) {
+                    // map presentRecords to full rows
+                    const prs = presentRecords.map(r => {
+                      const m = r.memberId || allMembers.find(x => (x._id || x.id) === (r.memberId && (r.memberId._id || r.memberId))) || {}
+                      const first = isFirst(m, r)
+                      return {
+                        Name: m.name || '',
+                        Email: m.email || '',
+                        Phone: m.phone || '',
+                        Address: m.address || '',
+                        MemberCode: m.memberCode || '',
+                        FirstScanDate: m.first_scan_date ? new Date(m.first_scan_date).toISOString() : '',
+                        MemberType: first ? 'FirstTimer' : 'Member',
+                        AttendanceStatus: r.status || 'present',
+                        AttendanceTimestamp: r.timestamp ? new Date(r.timestamp).toISOString() : '',
+                      }
+                    })
+                    rows = rows.concat(prs)
+                  }
+
+                  if (exportOptions.absent) {
+                    const abs = absentMembers.map(m => ({
+                      Name: m.name || '',
+                      Email: m.email || '',
+                      Phone: m.phone || '',
+                      Address: m.address || '',
+                      MemberCode: m.memberCode || '',
+                      FirstScanDate: m.first_scan_date ? new Date(m.first_scan_date).toISOString() : '',
+                      MemberType: 'Member',
+                      AttendanceStatus: 'absent',
+                      AttendanceTimestamp: '',
+                    }))
+                    rows = rows.concat(abs)
+                  }
+
+                  if (exportOptions.firstTimer && !exportOptions.present && !exportOptions.absent) {
+                    // export first timers among all members for this session
+                    const prs = presentRecords.map(r => {
+                      const m = r.memberId || allMembers.find(x => (x._id || x.id) === (r.memberId && (r.memberId._id || r.memberId))) || {}
+                      const first = isFirst(m, r)
+                      return first ? {
+                        Name: m.name || '',
+                        Email: m.email || '',
+                        Phone: m.phone || '',
+                        Address: m.address || '',
+                        MemberCode: m.memberCode || '',
+                        FirstScanDate: m.first_scan_date ? new Date(m.first_scan_date).toISOString() : '',
+                        MemberType: 'FirstTimer',
+                        AttendanceStatus: r.status || 'present',
+                        AttendanceTimestamp: r.timestamp ? new Date(r.timestamp).toISOString() : '',
+                      } : null
+                    }).filter(Boolean)
+                    rows = rows.concat(prs)
+                  }
+
+                  if (rows.length === 0) {
+                    alert('No records match the selected options')
+                    return
+                  }
+
+                  // CSV download
+                  const headers = Object.keys(rows[0])
+                  const csv = [headers.join(','), ...rows.map(r => headers.map(h => {
+                    const v = r[h] == null ? '' : String(r[h]).replace(/"/g, '""')
+                    return `"${v}"`
+                  }).join(','))].join('\n')
+
+                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+                  const link = document.createElement('a')
+                  const url = URL.createObjectURL(blob)
+                  link.setAttribute('href', url)
+                  link.setAttribute('download', `session-${sessionId}-export.csv`)
+                  document.body.appendChild(link)
+                  link.click()
+                  document.body.removeChild(link)
+                  URL.revokeObjectURL(url)
+                  setExportOpen(false)
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+              >
+                Export CSV
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {successMessage && (
         <motion.div

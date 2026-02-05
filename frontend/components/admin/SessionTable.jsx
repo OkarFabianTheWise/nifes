@@ -40,6 +40,135 @@ export default function SessionTable({ sessions }) {
     router.push({ pathname: '/', query: { sessionId } });
   };
 
+  // --- Export modal state and handlers ---
+  const [exportSessionId, setExportSessionId] = useState(null);
+  const [exportOptions, setExportOptions] = useState({ present: true, absent: false, firstTimer: false });
+  const [exportFormat, setExportFormat] = useState('csv');
+
+  const toggleOption = (key) => {
+    setExportOptions(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const downloadCSV = (rows, filename = 'export.csv') => {
+    if (!rows || rows.length === 0) return;
+    const headers = Object.keys(rows[0]);
+    const csv = [headers.join(','), ...rows.map(r => headers.map(h => {
+      const v = r[h] == null ? '' : String(r[h]).replace(/"/g, '""');
+      return `"${v}"`;
+    }).join(','))].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExport = async (sessionId) => {
+    setLoading(true);
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/sessions/${sessionId}/attendance`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!res.ok) {
+        setToast({ type: 'error', message: 'Failed to fetch attendance for export' });
+        return;
+      }
+
+
+      const data = await res.json();
+      const records = data.records || [];
+
+      // If some records don't have populated member info, fetch all attendees and map them
+      const needsFill = records.some(r => !r.memberId || !r.memberId.name);
+      let attendeesMap = {};
+      if (needsFill) {
+        try {
+          const atRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/attendees`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (atRes.ok) {
+            const all = await atRes.json();
+            attendeesMap = all.reduce((acc, m) => ({ ...acc, [String(m._id)]: m }), {});
+          }
+        } catch (err) {
+          console.warn('Failed to prefetch attendees for export:', err);
+        }
+      }
+
+      const dateKey = (d) => (d ? new Date(d).toISOString().slice(0, 10) : null);
+      const isFirstTimer = (member, record) => {
+        if (!member || !member.first_scan_date || !record || !record.timestamp) return false;
+        return dateKey(member.first_scan_date) === dateKey(record.timestamp);
+      };
+
+      // Filter by options
+      let filtered = records.filter(r => {
+        const statusMatch = (exportOptions.present && r.status === 'present') || (exportOptions.absent && r.status === 'absent');
+        if (!exportOptions.present && !exportOptions.absent && !exportOptions.firstTimer) return false;
+
+        // Determine member object (populated or from map)
+        let member = r.memberId;
+        if (!member || !member.name) {
+          const id = member && member._id ? String(member._id) : String(member);
+          member = attendeesMap[id] || {};
+        }
+
+        const first = isFirstTimer(member, r);
+
+        if (exportOptions.firstTimer && !(first)) return false;
+
+        if (exportOptions.present || exportOptions.absent) {
+          if (!statusMatch) return false;
+        }
+
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        setToast({ type: 'info', message: 'No records match selected export options' });
+        return;
+      }
+
+      // Map to flat rows with full member info and member type
+      const rows = filtered.map(r => {
+        let m = r.memberId || {};
+        if (!m || !m.name) {
+          const id = m && m._id ? String(m._id) : String(m);
+          m = attendeesMap[id] || {};
+        }
+        const firstTimerFlag = isFirstTimer(m, r);
+        return {
+          Name: m.name || '',
+          Email: m.email || '',
+          Phone: m.phone || '',
+          Address: m.address || '',
+          MemberCode: m.memberCode || '',
+          FirstScanDate: m.first_scan_date ? new Date(m.first_scan_date).toISOString() : '',
+          MemberType: firstTimerFlag ? 'FirstTimer' : 'Member',
+          AttendanceStatus: r.status || '',
+          AttendanceTimestamp: r.timestamp ? new Date(r.timestamp).toISOString() : '',
+        };
+      });
+
+      const filename = `session-${sessionId}-export.csv`;
+      downloadCSV(rows, filename);
+      setToast({ type: 'success', message: 'Export started' });
+      setExportSessionId(null);
+    } catch (error) {
+      console.error('Export error', error);
+      setToast({ type: 'error', message: 'Export failed' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       <h2 className="text-xl font-bold text-gray-900 mb-6">Previous Sessions</h2>
@@ -82,12 +211,21 @@ export default function SessionTable({ sessions }) {
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <button
-                        onClick={() => handleViewInHome(session._id)}
-                        className="text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        View
-                      </button>
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={() => handleViewInHome(session._id)}
+                          className="text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          View
+                        </button>
+                        <button
+                          onClick={() => setExportSessionId(session._id)}
+                          title="Export session data"
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          📤
+                        </button>
+                      </div>
                     </td>
                   </tr>
 
@@ -99,6 +237,37 @@ export default function SessionTable({ sessions }) {
       </div>
 
       {toast && <Toast message={toast.message} type={toast.type} />}
+
+      {exportSessionId && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30">
+          <div className="bg-white rounded-lg shadow p-6 w-96">
+            <h3 className="text-lg font-semibold mb-4">Export Session</h3>
+            <div className="space-y-3">
+              <div className="flex items-center">
+                <input id="present" type="checkbox" checked={exportOptions.present} onChange={() => toggleOption('present')} />
+                <label htmlFor="present" className="ml-2">Present</label>
+              </div>
+              <div className="flex items-center">
+                <input id="absent" type="checkbox" checked={exportOptions.absent} onChange={() => toggleOption('absent')} />
+                <label htmlFor="absent" className="ml-2">Absent</label>
+              </div>
+              <div className="flex items-center">
+                <input id="firstTimer" type="checkbox" checked={exportOptions.firstTimer} onChange={() => toggleOption('firstTimer')} />
+                <label htmlFor="firstTimer" className="ml-2">First Timer</label>
+              </div>
+              <div className="pt-2">
+                <div className="text-sm font-medium mb-1">Format</div>
+                <label className="mr-3"><input type="radio" name="format" checked={exportFormat === 'csv'} onChange={() => setExportFormat('csv')} /> CSV</label>
+                <label><input type="radio" name="format" disabled={true} checked={exportFormat === 'pdf'} onChange={() => setExportFormat('pdf')} /> PDF (coming)</label>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setExportSessionId(null)} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+              <button onClick={() => handleExport(exportSessionId)} className="px-4 py-2 bg-blue-600 text-white rounded">Export CSV</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
