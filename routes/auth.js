@@ -53,16 +53,22 @@ router.post("/login", async (req, res) => {
             return res.status(401).json({ error: "Invalid email or password" });
         }
 
-        // Generate JWT token
+        // Generate JWT token with 24-hour expiration
+        const expiresIn = "24h";
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
             process.env.JWT_SECRET || "your_secret_key",
-            { expiresIn: "7d" }
+            { expiresIn }
         );
+
+        // Calculate token expiration timestamp
+        const expirationTime = Math.floor(Date.now() / 1000) + (24 * 60 * 60); // 24 hours in seconds
 
         res.json({
             message: "Login successful",
             token,
+            expiresIn,
+            expiresAt: expirationTime,
             user: { id: user._id, email: user.email, role: user.role, name: user.name }
         });
     } catch (error) {

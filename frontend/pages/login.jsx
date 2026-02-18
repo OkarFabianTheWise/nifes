@@ -37,6 +37,11 @@ export default function LoginPage() {
       // Store token and user in localStorage
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Store expiration info if available
+      if (data.expiresAt) {
+        localStorage.setItem('tokenExpiresAt', data.expiresAt);
+      }
 
       setToast({ type: 'success', message: 'Login successful!' });
       

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { isTokenExpired, clearAuthData } from '../../utils/tokenUtils';
+import { useSessionExpiration } from '../../hooks/useSessionExpiration';
 import SessionTable from '../../components/admin/SessionTable';
 import AttendeeTable from '../../components/admin/AttendeeTable';
 import AdminManagement from '../../components/admin/AdminManagement';
@@ -8,6 +10,7 @@ import Toast from '../../components/Toast';
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { handleSessionExpired } = useSessionExpiration();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState(null);
@@ -22,6 +25,15 @@ export default function AdminDashboard() {
       const userData = localStorage.getItem('user');
 
       if (!token || !userData) {
+        router.push('/login');
+        return;
+      }
+
+      // Check if token is expired
+      if (isTokenExpired(token)) {
+        console.warn('Session expired, logging out...');
+        setToast({ type: 'error', message: 'Your session has expired. Please login again.' });
+        clearAuthData();
         router.push('/login');
         return;
       }
@@ -88,8 +100,7 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    clearAuthData();
     router.push('/login');
   };
 
