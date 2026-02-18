@@ -6,8 +6,6 @@ import {
   UserCheck,
   UserPlus,
   UserX,
-  Moon,
-  Sun,
 } from 'lucide-react'
 import axios from 'axios'
 import { StatsCard } from '../components/StatsCard'
@@ -16,7 +14,6 @@ import { QRSection } from '../components/QRSection'
 import { AttendanceActions } from '../components/AttendanceActions'
 import { SessionManagement } from '../components/SessionManagement'
 import MemberModal from '../components/MemberModal'
-import { useTheme } from '../hooks/useTheme'
 import { Toast } from '../components/Toast'
 import { MembersDetailsModal } from '../components/MembersDetailsModal'
 
@@ -217,7 +214,6 @@ const CreateSessionModal = ({ open, onClose, onCreate, showToast }) => {
 
 export default function Home() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
-  const { theme, toggleTheme } = useTheme()
   const router = useRouter()
   const [user, setUser] = useState(null)
 
@@ -587,7 +583,7 @@ export default function Home() {
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header with Theme Toggle */}
         <header className="mb-12 flex flex-col items-center text-center relative">
-          {/* Theme Toggle Button */}
+          {/* Admin Login Button */}
           <motion.button
             initial={{
               opacity: 0,
@@ -600,25 +596,11 @@ export default function Home() {
             transition={{
               duration: 0.4,
             }}
-            onClick={toggleTheme}
-            className="absolute right-0 top-0 flex items-center gap-2 rounded-2xl border border-indigo-200 dark:border-white/10 bg-white/80 dark:bg-white/5 px-4 py-2.5 backdrop-blur-xl transition-all hover:bg-white dark:hover:bg-white/10 hover:shadow-lg hover:shadow-indigo-500/5 dark:hover:shadow-blue-900/20 active:scale-95"
-            aria-label="Toggle theme"
+            onClick={() => router.push('/admin')}
+            className="absolute right-0 top-0 flex items-center gap-2 rounded-2xl border border-indigo-200 dark:border-white/10 bg-indigo-600 dark:bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-700 px-4 py-2.5 backdrop-blur-xl transition-all text-white shadow-lg hover:shadow-lg hover:shadow-indigo-500/30 dark:hover:shadow-indigo-900/40 active:scale-95"
+            aria-label="Admin Login"
           >
-            {theme === 'light' ? (
-              <>
-                <Moon className="h-4 w-4 text-indigo-600 dark:text-gray-400" />
-                <span className="text-sm font-medium text-indigo-700 dark:text-gray-300">
-                  Dark
-                </span>
-              </>
-            ) : (
-              <>
-                <Sun className="h-4 w-4 text-stone-600 dark:text-gray-400" />
-                <span className="text-sm font-medium text-stone-700 dark:text-gray-300">
-                  Light
-                </span>
-              </>
-            )}
+            <span className="text-sm font-medium">Admin Login</span>
           </motion.button>
 
           <motion.img
@@ -735,7 +717,7 @@ export default function Home() {
               <div className="mt-4">
                 <button
                   onClick={() => setExportOpen(true)}
-                  className={`px-3 py-2 rounded ${theme === 'dark' ? 'bg-white/10 text-white border border-white/10' : 'bg-blue-600 text-white hover:bg-blue-500'}`}
+                  className="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-500 transition-colors"
                 >
                   Export Session Data
                 </button>
