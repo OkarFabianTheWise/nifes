@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Toast from '../Toast';
+import { getApiUrl } from '../../utils/apiUrl';
 
 export default function AdminManagement() {
   const [admins, setAdmins] = useState([]);
@@ -17,7 +18,7 @@ export default function AdminManagement() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth`,
+        `${getApiUrl()}/api/auth`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -44,7 +45,7 @@ export default function AdminManagement() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/add-admin`,
+        `${getApiUrl()}/api/auth/add-admin`,
         {
           method: 'POST',
           headers: {
@@ -78,7 +79,7 @@ export default function AdminManagement() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/remove-admin/${userId}`,
+        `${getApiUrl()}/api/auth/remove-admin/${userId}`,
         {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` }

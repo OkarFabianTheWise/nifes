@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { getApiUrl } from '../../utils/apiUrl';
 import { isTokenExpired, clearAuthData } from '../../utils/tokenUtils';
 import { useSessionExpiration } from '../../hooks/useSessionExpiration';
 import SessionTable from '../../components/admin/SessionTable';
@@ -18,6 +19,7 @@ export default function AdminDashboard() {
   const [attendees, setAttendees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  const [trendData, setTrendData] = useState(null); // chart.js formatted data
 
   useEffect(() => {
     const checkAuth = () => {
@@ -58,7 +60,7 @@ export default function AdminDashboard() {
 
   const loadDashboardData = async () => {
     const token = localStorage.getItem('token');
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const apiUrl = getApiUrl();
     
     try {
       // Load stats
@@ -91,6 +93,18 @@ export default function AdminDashboard() {
       if (attendeesRes.ok) {
         setAttendees(await attendeesRes.json());
       }
+
+      // Fetch all attendance records so we can compute trends
+      try {
+        const attendRes = await fetch(`${apiUrl}/api/attendance/current`);
+        if (attendRes.ok) {
+          const records = await attendRes.json();
+          const formatted = computeTrend(records);
+          setTrendData(formatted);
+        }
+      } catch (e) {
+        console.error('Error fetching attendance for trend:', e);
+      }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       setToast({ type: 'error', message: 'Failed to load dashboard data' });
@@ -98,6 +112,65 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   };
+
+  // computeTrend helper helps aggregate records into chart.js format
+  function computeTrend(records) {
+    if (!Array.isArray(records)) return null;
+    // group by week start date (Monday) and weekday counts for Tue/Thu/Sun
+    const weekMap = {};
+
+    records.forEach((r) => {
+      const sess = r.sessionId;
+      if (!sess || !sess.date) return;
+      const d = new Date(sess.date);
+      const weekday = d.getDay(); // 0=Sun,1=Mon,..6=Sat
+      let label;
+      if (weekday === 2) label = 'Tuesday';
+      else if (weekday === 4) label = 'Thursday';
+      else if (weekday === 0) label = 'Sunday';
+      else return; // skip other days
+
+      // compute week start (Monday)
+      const weekStart = new Date(d);
+      const diff = (weekStart.getDay() + 6) % 7; // days since Monday
+      weekStart.setDate(weekStart.getDate() - diff);
+      const weekKey = weekStart.toISOString().slice(0, 10);
+
+      if (!weekMap[weekKey]) {
+        weekMap[weekKey] = { Tuesday: 0, Thursday: 0, Sunday: 0 };
+      }
+      weekMap[weekKey][label] = (weekMap[weekKey][label] || 0) + 1;
+    });
+
+    const labels = Object.keys(weekMap).sort();
+    const tues = labels.map(k => weekMap[k].Tuesday);
+    const thurs = labels.map(k => weekMap[k].Thursday);
+    const suns = labels.map(k => weekMap[k].Sunday);
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Tuesday',
+          data: tues,
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        },
+        {
+          label: 'Thursday',
+          data: thurs,
+          borderColor: 'rgba(153, 102, 255, 1)',
+          backgroundColor: 'rgba(153, 102, 255, 0.2)',
+        },
+        {
+          label: 'Sunday',
+          data: suns,
+          borderColor: 'rgba(255, 159, 64, 1)',
+          backgroundColor: 'rgba(255, 159, 64, 0.2)',
+        },
+      ],
+    };
+  }
 
   const handleLogout = () => {
     clearAuthData();
@@ -168,7 +241,7 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <>
-            {activeTab === 'overview' && <DashboardStats stats={stats} />}
+            {activeTab === 'overview' && <DashboardStats stats={stats} trendData={trendData} />}
             {activeTab === 'sessions' && <SessionTable sessions={sessions} />}
             {activeTab === 'attendees' && <AttendeeTable attendees={attendees} />}
             {activeTab === 'messaging' && <div className="text-center py-12">

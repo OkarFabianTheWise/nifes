@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Toast from '../Toast';
+import { getApiUrl } from '../../utils/apiUrl';
 
 export default function AttendeeTable({ attendees }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,7 +25,7 @@ export default function AttendeeTable({ attendees }) {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/send-message`,
+        `${getApiUrl()}/api/admin/send-message`,
         {
           method: 'POST',
           headers: {

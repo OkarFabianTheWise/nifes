@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { isTokenExpired, clearAuthData } from './tokenUtils';
+import { getApiUrl } from './apiUrl';
 
-const apiUrl = typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000') : '';
+const apiUrl = typeof window !== 'undefined' ? getApiUrl() : '';
 
 // Create axios instance
 const axiosInstance = axios.create({
@@ -58,4 +59,5 @@ axiosInstance.interceptors.response.use(
   }
 );
 
+export { getApiUrl };
 export default axiosInstance;

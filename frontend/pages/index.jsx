@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { getApiUrl } from '../utils/apiUrl';
 import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
 import {
@@ -213,7 +214,7 @@ const CreateSessionModal = ({ open, onClose, onCreate, showToast }) => {
 }
 
 export default function Home() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+  const apiUrl = getApiUrl()
   const router = useRouter()
   const [user, setUser] = useState(null)
 

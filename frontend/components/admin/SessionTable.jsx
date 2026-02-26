@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Toast from '../Toast';
+import { getApiUrl } from '../../utils/apiUrl';
 
 export default function SessionTable({ sessions }) {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function SessionTable({ sessions }) {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/sessions/${sessionId}`,
+        `${getApiUrl()}/api/admin/sessions/${sessionId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -72,7 +73,7 @@ export default function SessionTable({ sessions }) {
     setLoading(true);
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/sessions/${sessionId}/attendance`, {
+      const res = await fetch(`${getApiUrl()}/api/admin/sessions/${sessionId}/attendance`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -90,7 +91,7 @@ export default function SessionTable({ sessions }) {
       let attendeesMap = {};
       if (needsFill) {
         try {
-          const atRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/attendees`, {
+          const atRes = await fetch(`${getApiUrl()}/api/admin/attendees`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (atRes.ok) {

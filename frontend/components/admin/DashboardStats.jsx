@@ -4,7 +4,10 @@ import React, { useState } from 'react';
 import Toast from '../Toast';
 import { useTheme } from '../../hooks/useTheme';
 
-export default function DashboardStats({ stats }) {
+import dynamic from 'next/dynamic';
+const AttendanceTrendChart = dynamic(() => import('./AttendanceTrendChart'), { ssr: false });
+
+export default function DashboardStats({ stats, trendData }) {
   if (!stats) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -56,7 +59,7 @@ export default function DashboardStats({ stats }) {
     const token = localStorage.getItem('token');
     try {
       if (exportSource === 'all') {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/attendees`, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(`${getApiUrl()}/api/admin/attendees`, { headers: { Authorization: `Bearer ${token}` } });
         if (!res.ok) { setToast({ type: 'error', message: 'Failed to fetch members' }); return; }
         const members = await res.json();
         const rows = members.map(m => ({
@@ -70,7 +73,7 @@ export default function DashboardStats({ stats }) {
       // session export
       const sessionId = stats?.activeSessionId;
       if (!sessionId) { setToast({ type: 'error', message: 'No active session selected' }); return; }
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/sessions/${sessionId}/attendance`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${getApiUrl()}/api/admin/sessions/${sessionId}/attendance`, { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) { setToast({ type: 'error', message: 'Failed to fetch session attendance' }); return; }
       const data = await res.json();
       const records = data.records || [];
@@ -107,11 +110,17 @@ export default function DashboardStats({ stats }) {
     }
   };
 
+  // derive additional metrics
+  const avgAttendance = stats.totalSessions > 0 ? (stats.totalAttendance / stats.totalSessions).toFixed(1) : 0;
+  const attendancePerMember = stats.totalMembers > 0 ? (stats.totalAttendance / stats.totalMembers).toFixed(1) : 0;
+
   const statCards = [
     { label: 'Total Sessions', value: stats.totalSessions, icon: '📅', color: 'blue', clickable: true, target: { view: 'sessions' } },
     { label: 'Active Sessions', value: stats.activeSessions, icon: '🟢', color: 'green', clickable: true, target: { sessionId: stats.activeSessionId || null, view: stats.activeSessionId ? null : 'active' } },
     { label: 'Total Members', value: stats.totalMembers, icon: '👥', color: 'purple' },
-    { label: 'Total Attendance', value: stats.totalAttendance, icon: '✅', color: 'orange' }
+    { label: 'Total Attendance', value: stats.totalAttendance, icon: '✅', color: 'orange' },
+    { label: 'Avg/Session', value: avgAttendance, icon: '📈', color: 'teal' },
+    { label: 'Attendees/Member', value: attendancePerMember, icon: '🔁', color: 'indigo' }
   ];
 
   return (
@@ -158,6 +167,9 @@ export default function DashboardStats({ stats }) {
           </div>
         ))}
       </div>
+
+      {/* trend chart for Tue/Thu/Sun attendance */}
+      {trendData && <AttendanceTrendChart data={trendData} />}
 
       {exportOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30">

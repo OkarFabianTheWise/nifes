@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import CountUp from 'react-countup'
 import Link from 'next/link'
+import { getApiUrl } from '../utils/apiUrl';
 
 export default function Data() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+  const apiUrl = getApiUrl()
   const [stats, setStats] = useState({
     totalMembers: 0,
     totalAttendance: 0,

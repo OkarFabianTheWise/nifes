@@ -1,8 +1,8 @@
 {
-  "..\\components\\QRSection.jsx -> react-qr-code": {
-    "id": "..\\components\\QRSection.jsx -> react-qr-code",
+  "..\\components\\admin\\DashboardStats.jsx -> ./AttendanceTrendChart": {
+    "id": "..\\components\\admin\\DashboardStats.jsx -> ./AttendanceTrendChart",
     "files": [
-      "static/chunks/node_modules_react-qr-code_lib_index_js.js"
+      "static/chunks/components_admin_AttendanceTrendChart_jsx.js"
     ]
   }
 }

@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import axios from 'axios'
 import Image from 'next/image'
 import { Toast } from '../../components/Toast'
+import { getApiUrl } from '../../utils/apiUrl';
 
 export default function AttendPage() {
   const router = useRouter()
@@ -25,7 +26,7 @@ export default function AttendPage() {
   const [toastType, setToastType] = useState('success')
   const [showToastNotif, setShowToastNotif] = useState(false)
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+  const apiUrl = getApiUrl()
 
   const showToast = (message, type = 'success') => {
     setToastMessage(message)

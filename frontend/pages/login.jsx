@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Toast from '../components/Toast';
+import { getApiUrl } from '../utils/apiUrl';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function LoginPage() {
     console.log('Login attempt with:', { email, password });
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const apiUrl = getApiUrl();
       console.log('API URL:', apiUrl);
       
       const response = await fetch(`${apiUrl}/api/auth/login`, {
